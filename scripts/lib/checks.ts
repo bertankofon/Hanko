@@ -474,31 +474,59 @@ export async function runChecks(opts: RunOptions): Promise<VerificationReport> {
     ),
   );
 
-  // Soft check: is the name we plan to use in Phase 3 still free?
-  results.push(
-    await attempt(
-      {
-        id: 'ens.tnvda.available',
-        group: 'ens',
-        label: 'tnvda.eth still available (Phase 3)',
-        address: d.ens.ETHRegistrar,
-        expected: 'available',
-        howChecked: `eth_call isAvailable("tnvda") @ ${short(d.ens.ETHRegistrar)}`,
-        source: `ensdomains/contracts-v2 @ ${d.sources.ens.commit}`,
-        remediation:
-          'The name is taken. Pick another label for Phase 3 (e.g. tnvda-hanko) and update CLAUDE.md and PHASES.md.',
-      },
-      async () => {
-        const available = (await client.readContract({
-          address: getAddress(d.ens.ETHRegistrar),
-          abi: ensEthRegistrarAbi,
-          functionName: 'isAvailable',
-          args: ['tnvda'],
-        })) as boolean;
-        return {actual: available ? 'available' : 'taken', ok: available};
-      },
-    ),
-  );
+  // Before Phase 3 the question is whether the name is still free; afterwards it is whether the
+  // name we took still points where we think it does.
+  if (!d.hanko.TnvdaRegistry) {
+    results.push(
+      await attempt(
+        {
+          id: 'ens.tnvda.available',
+          group: 'ens',
+          label: 'tnvda.eth still available (for Phase 3)',
+          address: d.ens.ETHRegistrar,
+          expected: 'available',
+          howChecked: `eth_call isAvailable("tnvda") @ ${short(d.ens.ETHRegistrar)}`,
+          source: `ensdomains/contracts-v2 @ ${d.sources.ens.commit}`,
+          remediation:
+            'Someone else registered it. Pick another label for Phase 3 and update CLAUDE.md and PHASES.md.',
+        },
+        async () => {
+          const available = (await client.readContract({
+            address: getAddress(d.ens.ETHRegistrar),
+            abi: ensEthRegistrarAbi,
+            functionName: 'isAvailable',
+            args: ['tnvda'],
+          })) as boolean;
+          return {actual: available ? 'available' : 'taken', ok: available};
+        },
+      ),
+    );
+  } else {
+    results.push(
+      await attempt(
+        {
+          id: 'ens.tnvda.subregistry',
+          group: 'ens',
+          label: 'tnvda.eth points at our registry',
+          address: d.ens.ETHRegistry,
+          expected: d.hanko.TnvdaRegistry,
+          howChecked: `eth_call getSubregistry("tnvda") @ ${short(d.ens.ETHRegistry)}`,
+          source: 'deployments/11155111.json',
+          remediation:
+            'The name no longer resolves to our registry, so every permission lookup returns nothing. Re-run the Phase 3 setup.',
+        },
+        async () => {
+          const got = (await client.readContract({
+            address: getAddress(d.ens.ETHRegistry),
+            abi: ensRegistryAbi,
+            functionName: 'getSubregistry',
+            args: ['tnvda'],
+          })) as string;
+          return {actual: got, ok: eq(got, d.hanko.TnvdaRegistry)};
+        },
+      ),
+    );
+  }
 
   results.push(
     await attempt(
@@ -540,6 +568,69 @@ export async function runChecks(opts: RunOptions): Promise<VerificationReport> {
           const wei = await client.getBalance({address: getAddress(actor.address)});
           const eth = Number(formatEther(wei));
           return {actual: `${eth.toFixed(4)} ETH`, ok: eth >= floor};
+        },
+      ),
+    );
+  }
+
+  // ---- which allowlist is live --------------------------------------------
+  const adapterAddress = d.hanko.PermissionsAdapter;
+  const tokenAddress = d.hanko.MockStockToken;
+
+  if (adapterAddress && tokenAddress) {
+    results.push(
+      await attempt(
+        {
+          id: 'hanko.checkerAgreement',
+          group: 'hanko',
+          label: 'Pool and token read the same allowlist',
+          address: adapterAddress,
+          expected: 'adapter.allowListChecker() == tNVDA.checker()',
+          howChecked: 'eth_call allowListChecker() and checker()',
+          source: 'PermissionsAdapter / MockStockToken',
+          remediation:
+            'They have drifted apart. A wallet the pool refuses could still take delivery of the underlying by a direct transfer, which is the loophole the project claims to close. Run SwitchChecker, which moves both.',
+        },
+        async () => {
+          const [poolChecker, tokenChecker] = await Promise.all([
+            client.readContract({
+              address: getAddress(adapterAddress),
+              abi: [
+                {
+                  type: 'function',
+                  name: 'allowListChecker',
+                  inputs: [],
+                  outputs: [{type: 'address'}],
+                  stateMutability: 'view',
+                },
+              ] as const,
+              functionName: 'allowListChecker',
+            }),
+            client.readContract({
+              address: getAddress(tokenAddress),
+              abi: [
+                {
+                  type: 'function',
+                  name: 'checker',
+                  inputs: [],
+                  outputs: [{type: 'address'}],
+                  stateMutability: 'view',
+                },
+              ] as const,
+              functionName: 'checker',
+            }),
+          ]);
+
+          const which = eq(poolChecker, d.hanko.EnsAllowlistChecker)
+            ? 'ENS'
+            : eq(poolChecker, d.hanko.SimpleAllowlistChecker)
+              ? 'mapping'
+              : 'unrecognised';
+
+          return {
+            actual: `both read ${poolChecker} (${which})`,
+            ok: eq(poolChecker, tokenChecker),
+          };
         },
       ),
     );

@@ -94,6 +94,53 @@ export const stateViewAbi = [
   },
 ] as const;
 
+export const ensCheckerAbi = [
+  {
+    type: 'function',
+    name: 'checkAllowlist',
+    inputs: [
+      {name: 'account', type: 'address'},
+      {name: 'tokenAddress', type: 'address'},
+    ],
+    outputs: [{type: 'bytes2'}],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'expiryOf',
+    inputs: [{name: 'account', type: 'address'}],
+    outputs: [
+      {name: 'swapExpiry', type: 'uint64'},
+      {name: 'lpExpiry', type: 'uint64'},
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'labelFor',
+    inputs: [{name: 'account', type: 'address'}],
+    outputs: [{type: 'string'}],
+    stateMutability: 'pure',
+  },
+] as const;
+
+export const ensRegistryAbi = [
+  {
+    type: 'function',
+    name: 'findOwner',
+    inputs: [{name: 'label', type: 'string'}],
+    outputs: [{type: 'address'}],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'getSubregistry',
+    inputs: [{name: 'label', type: 'string'}],
+    outputs: [{type: 'address'}],
+    stateMutability: 'view',
+  },
+] as const;
+
 export const adapterAbi = [
   {type: 'function', name: 'swappingEnabled', inputs: [], outputs: [{type: 'bool'}], stateMutability: 'view'},
   {
