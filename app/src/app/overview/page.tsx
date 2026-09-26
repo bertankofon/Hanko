@@ -158,6 +158,32 @@ export default function OverviewPage() {
         </Reveal>
       </section>
 
+      {/* ---- Property: hierarchical delegation ------------------------------ */}
+      <section className={band}>
+        <Reveal>
+          <p className={eyebrow}>Property · hierarchical delegation</p>
+          <h2 className="text-section text-balance">
+            Clear a firm once. Its bots hang underneath it.
+          </h2>
+        </Reveal>
+
+        <Reveal delay={140} className="mt-10">
+          <HierarchyTree />
+        </Reveal>
+
+        <Reveal delay={220}>
+          <div className="mt-8 space-y-4">
+            <Note bold="A capital firm passes KYC once, not once per bot.">
+              It opens names for its own agents under its own name, scoped as it likes — swap only,
+              liquidity only. The venue is not asked, and does not need to be.
+            </Note>
+            <Note bold="Revoke the firm and every bot under it goes in the same transaction.">
+              Nothing cascades because nothing has to: a child of a lapsed name has nothing left to
+              resolve through. There is no list of agents to find and clean up.
+            </Note>
+          </div>
+        </Reveal>
+      </section>
       {/* ---- Conditions ---------------------------------------------------- */}
       <section className={band}>
         <Reveal>
@@ -234,32 +260,6 @@ export default function OverviewPage() {
         </Reveal>
       </section>
 
-      {/* ---- Property: hierarchical delegation ------------------------------ */}
-      <section className={band}>
-        <Reveal>
-          <p className={eyebrow}>Property · hierarchical delegation</p>
-          <h2 className="text-section text-balance">
-            Clear a firm once. Its bots hang underneath it.
-          </h2>
-        </Reveal>
-
-        <Reveal delay={140} className="mt-10">
-          <HierarchyTree />
-        </Reveal>
-
-        <Reveal delay={220}>
-          <div className="mt-8 space-y-4">
-            <Note bold="A capital firm passes KYC once, not once per bot.">
-              It opens names for its own agents under its own name, scoped as it likes — swap only,
-              liquidity only. The venue is not asked, and does not need to be.
-            </Note>
-            <Note bold="Revoke the firm and every bot under it goes in the same transaction.">
-              Nothing cascades because nothing has to: a child of a lapsed name has nothing left to
-              resolve through. There is no list of agents to find and clean up.
-            </Note>
-          </div>
-        </Reveal>
-      </section>
 
       {/* ---- Condition: public notice --------------------------------------- */}
       <section className={band}>
@@ -288,28 +288,6 @@ export default function OverviewPage() {
         </Reveal>
       </section>
 
-      {/* ---- Honesty --------------------------------------------------------- */}
-      <section className={band}>
-        <Reveal>
-          <p className={eyebrow}>Not claimed</p>
-        </Reveal>
-
-        <div className="space-y-5">
-          {[
-            ['Not KYC.', 'That answers who you are. This answers who may trade.'],
-            ['Not a restriction on DeFi.', 'Permissionless pools are untouched.'],
-            ['Not custody.', 'A delegated bot trades its own wallet, never yours.'],
-            ['A testnet demo.', 'Mock asset, round-number price, server-signed actors.'],
-          ].map(([bold, rest], i) => (
-            <Reveal key={bold} delay={i * 110}>
-              <p className="text-lead text-balance">
-                <span className="font-semibold text-ink">{bold}</span>{' '}
-                <span className="text-muted">{rest}</span>
-              </p>
-            </Reveal>
-          ))}
-        </div>
-      </section>
 
       <footer className="border-t border-line py-20">
         <Reveal>

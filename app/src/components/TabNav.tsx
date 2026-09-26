@@ -18,7 +18,9 @@ export function TabNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex flex-wrap gap-1 border-b border-line">
+    /* No horizontal padding on the links: the first tab has to line up with the mark
+       in the header above it, so the spacing lives in the gap instead. */
+    <nav className="flex flex-wrap gap-x-8 gap-y-1 border-b border-line">
       {TABS.map((tab) => {
         const active = pathname.startsWith(tab.href);
         return (
@@ -26,12 +28,12 @@ export function TabNav() {
             key={tab.href}
             href={tab.href}
             className={[
-              'relative px-4 py-2.5 text-sm transition-colors',
+              'relative py-4 text-base font-medium tracking-tight transition-colors',
               active ? 'text-ink' : 'text-muted hover:text-ink',
             ].join(' ')}
           >
             {tab.label}
-            {active && <span className="absolute inset-x-3 -bottom-px h-0.5 rounded-full bg-seal" />}
+            {active && <span className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-seal" />}
           </Link>
         );
       })}

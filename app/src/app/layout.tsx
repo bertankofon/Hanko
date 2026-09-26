@@ -14,15 +14,16 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
     <html lang="en">
       <body>
         <div className="mx-auto max-w-6xl px-4 py-6">
-          <header className="mb-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-            <Link href="/overview" className="flex items-center gap-2.5">
+          <header className="flex flex-wrap items-baseline gap-x-5 gap-y-2 pb-7 pt-4">
+            <Link href="/overview" className="flex items-baseline gap-3">
               {/* The mark rather than the lockup: the wordmark's own red is too dark to read
                   small on this background, so the name is set in the app's type instead. */}
               {/* eslint-disable-next-line @next/next/no-img-element -- fixed-size brand asset */}
-              <img src="/brand/hanko-mark-trimmed.webp" alt="" className="h-7 w-auto" />
-              <span className="text-lg font-semibold tracking-tight">Hanko</span>
+              <img src="/brand/hanko-mark-trimmed.webp" alt="" className="h-9 w-auto translate-y-1" />
+              <span className="text-3xl font-semibold tracking-tight">Hanko</span>
             </Link>
-            <span className="text-sm text-muted">
+            <span className="hidden text-base text-muted sm:inline">
+              <span className="mr-4 text-line">/</span>
               expiring, revocable onchain seals for tokenized stock pools
             </span>
           </header>
