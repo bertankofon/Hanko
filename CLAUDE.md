@@ -80,6 +80,11 @@ iki işle tanımlar: permissioned katılımcılar için AMM havuzları sağlamak
 **"Venue operator (TSV)"** olarak anılır. Demoda tokenize eden ve venue'yu işleten aynı taraftır.
 **Kapsam dışı (roadmap olarak an, kodlama):** sembol/hacim limitleri, dayanak hisse issuer'ının
 itiraz hakkı kaydı, halt'ın bir oracle ile otomatikleşmesi.
+**Karıştırma:** Kararnamedeki **5 yıl muafiyetin kendi ömrü** (SEC kalıcı kuralları yazana kadarki
+geçici pencere). Katılımcı izninin süresiyle ilgisi yok — kararname bireysel yetki süresi hakkında
+hiçbir şey söylemiyor. Bizim süre seçimimiz bu yüzden SEC'e dayandırılamaz; **doğru dayanak
+credential'ın kendi geçerliliği** (pasaportun bitiş tarihi, KYC yenileme döngüsü). Faz 4'te
+`CredentialProvider.verify` döndürdüğü `expiry` bu işi devralacak.
 **Hanko DeFi'yi kısıtlamaz:** permissionless havuzlar etkilenmez; Hanko regüle venue'ların
 Uniswap v4 altyapısını kullanabilmesi içindir.
 

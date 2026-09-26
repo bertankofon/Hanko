@@ -33,15 +33,30 @@ interface IRegistryAdmin {
 contract AdmitMembers is Script, HankoEnv {
     using stdJson for string;
 
-    /// @dev Short on purpose: the demo shows a permission lapsing without anyone acting, and
-    ///      nobody will wait a year to see it.
-    uint64 internal constant MEMBER_TTL = 2 hours;
+    /// @dev How long a member's permission lasts, overridable with `MEMBER_TTL_SECONDS`.
+    ///
+    ///      Two hours by default because the demo's strongest moment is a permission lapsing with
+    ///      nobody acting, and nobody will wait a year to watch it.
+    ///
+    ///      This is a placeholder for the real answer. A venue should not pick this number at all:
+    ///      it belongs to whatever credential admitted the member, so a passport-backed permission
+    ///      should end when the passport does and a KYC-backed one on that provider's refresh
+    ///      cycle. Phase 4's credential provider returns an expiry alongside the proof, and this
+    ///      constant goes away when the attester starts using it.
+    ///
+    ///      Note this has nothing to do with the five years in the SEC order — that is when the
+    ///      exemption itself sunsets, not how long a participant stays cleared.
+    uint64 internal constant DEFAULT_MEMBER_TTL = 2 hours;
+
+    function memberTtl() internal view returns (uint64) {
+        return uint64(vm.envOr("MEMBER_TTL_SECONDS", uint256(DEFAULT_MEMBER_TTL)));
+    }
 
     function run() external {
         Env memory e = readEnv();
         (address swapRegistry, address lpRegistry) = registries();
 
-        uint64 expiry = uint64(block.timestamp) + MEMBER_TTL;
+        uint64 expiry = uint64(block.timestamp) + memberTtl();
 
         vm.startBroadcast(e.deployerKey);
         // The issuer keeps standing permissions so it can seed and rebalance the pool.
