@@ -35,6 +35,7 @@ interface IETHRegistrarLike {
 interface IEthRegistryLike {
     function findTokenId(string calldata label) external view returns (uint256);
     function setSubregistry(uint256 anyId, address registry) external;
+    function setResolver(uint256 anyId, address resolver) external;
     function getSubregistry(string calldata label) external view returns (address);
 }
 
@@ -62,6 +63,7 @@ interface IUserRegistryLike {
     function unregister(uint256 tokenId) external;
     function setParent(address parent, string calldata label) external;
     function setSubregistry(uint256 anyId, address registry) external;
+    function setResolver(uint256 anyId, address resolver) external;
     function grantRoles(uint256 anyId, uint256 roleBitmap, address account) external returns (bool);
     function findOwner(string calldata label) external view returns (address);
     function findTokenId(string calldata label) external view returns (uint256);
@@ -156,10 +158,15 @@ abstract contract EnsFixture is CommonBase {
     /// @dev Must run as the operator: the venue records the delegation, the investor grants it.
     ///      The entry is a pointer and nothing more — an agent listed here but holding no name
     ///      inside the principal's registry has no permission at all.
+    ///
+    ///      The pointer goes in the resolver field, not the subregistry field. Indexers read
+    ///      `subregistry` to place a registry in the hierarchy, so using it here made the
+    ///      principal's registry appear to hang under `agents.tnvda.eth` instead of under the
+    ///      principal's own name.
     function indexAgent(address agent, address principalRegistry, uint64 expiry) internal {
-        IUserRegistryLike(agentIndex).register(
-            labelFor(agent), agent, principalRegistry, address(0), 0, expiry
-        );
+        uint256 tokenId =
+            IUserRegistryLike(agentIndex).register(labelFor(agent), agent, address(0), address(0), 0, expiry);
+        IUserRegistryLike(agentIndex).setResolver(tokenId, principalRegistry);
     }
 
     /// @notice The grant itself: a name for `agent` inside `principalRegistry`.

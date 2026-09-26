@@ -13,10 +13,11 @@ interface IEnsRegistry {
     /// @notice Unix time the name lapses at, in seconds.
     function findExpiry(string calldata label) external view returns (uint64);
 
-    /// @notice The registry hanging under `label`, or zero if the name has lapsed or holds none.
+    /// @notice The address recorded against `label`, or zero if the name has lapsed.
     /// @dev Returns zero for an expired *or* unregistered name — `unregister` sets the expiry to
-    ///      the current block, so a revoked name stops resolving in the same transaction.
-    function getSubregistry(string calldata label) external view returns (address);
+    ///      the current block, so a revoked name stops resolving in the same transaction. Hanko
+    ///      uses this field to hold an agent's principal registry; see `AGENT_INDEX`.
+    function getResolver(string calldata label) external view returns (address);
 
     /// @notice The registry this one hangs under, and the label it hangs from.
     function getParent() external view returns (address parent, string memory label);
@@ -39,11 +40,20 @@ interface IEnsRegistry {
 ///      when the principal's name lapses or is revoked, ENS stops resolving their registry and the
 ///      agent stops trading in the same transaction, with nobody having touched the agent.
 ///
-///      Uniswap hands the checker an address and nothing else, so the agent's principal has to be
-///      discoverable from that address alone. The index that makes it possible lives in ENS too:
-///      `agents.tnvda.eth` holds one entry per agent whose *subregistry* field points at the
-///      principal's registry. It is a pointer, not an authority — an agent with a pointer but no
-///      name inside the principal's registry has no permission at all.
+///      Uniswap hands the checker an address and nothing else, and ENS resolves downwards, so an
+///      agent's principal has to be discoverable from that address alone. The index that makes it
+///      possible lives in ENS too: `agents.tnvda.eth` holds one entry per agent whose *resolver*
+///      field points at the principal's registry. It is a pointer, not an authority — an agent
+///      with a pointer but no name inside the principal's registry has no permission at all, and
+///      only the principal can grant that name.
+///
+///      The resolver field is meant for a resolver contract, and holding a registry address in it
+///      is a deliberate liberty. The obvious field, `subregistry`, is the one ENS indexers read to
+///      work out where a registry sits in the hierarchy; pointing it here made them believe the
+///      principal's registry hung under `agents.tnvda.eth` rather than under the principal's own
+///      name, and the delegation then read as nonsense on ENS's own explorer. The resolver field
+///      carries the pointer without that side effect, and it lapses with the name exactly as the
+///      subregistry field does, so revocation behaves identically.
 ///
 ///      Agents get `SWAP_ALLOWED` and never `LIQUIDITY_ALLOWED`. A bot can trade its principal's
 ///      position; it cannot commit their capital as liquidity.
@@ -91,12 +101,12 @@ contract EnsAllowlistChecker is BaseAllowlistChecker {
 
     /// @notice Whether `account` is an agent whose grant and whose principal are both still live.
     /// @dev Four reads, every one of them a question ENS already knows the answer to:
-    ///      1. the index points at a registry (zero once the agent's index entry is revoked);
+    ///      1. the index points at a registry (zero once the agent's index entry lapses);
     ///      2. that registry says which name it hangs under;
     ///      3. the principal still owns that name — this is the cascade;
     ///      4. the agent still holds a name inside the principal's registry.
     function isActiveAgent(address account, string memory label) public view returns (bool) {
-        address principalRegistry = AGENT_INDEX.getSubregistry(label);
+        address principalRegistry = AGENT_INDEX.getResolver(label);
         if (principalRegistry == address(0)) return false;
 
         (address parentRegistry, string memory principalLabel) = IEnsRegistry(principalRegistry).getParent();
@@ -111,7 +121,7 @@ contract EnsAllowlistChecker is BaseAllowlistChecker {
     /// @notice The principal an agent acts for, or the zero address if it is not an agent.
     /// @dev For display. Enforcement uses `isActiveAgent`, which also checks both names are live.
     function principalOf(address account) external view returns (address principal) {
-        address principalRegistry = AGENT_INDEX.getSubregistry(labelFor(account));
+        address principalRegistry = AGENT_INDEX.getResolver(labelFor(account));
         if (principalRegistry == address(0)) return address(0);
 
         (address parentRegistry, string memory principalLabel) = IEnsRegistry(principalRegistry).getParent();

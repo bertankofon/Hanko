@@ -56,7 +56,7 @@
   "hanko": {
     "MockStockToken": "0x301b61f063fc6232D21cdFa5D97042910ee3994F",
     "SimpleAllowlistChecker": "0xc229c68F0C22301d3b332e0EAEfB3a93ebbe683D",
-    "EnsAllowlistChecker": "0xC26f633Dd7BD41bE832c132104149714f0ef00FB",
+    "EnsAllowlistChecker": "0x44f5f3F9376bEea9E2433898821e30F0BaCBd1Af",
     "HumanRegistrar": null,
     "PermissionsAdapter": "0x7060947614ECED6CA376A318C81dF6C088f00718",
     "SwapRegistry": "0xbB8A0C79945993eCf1ACd4177B896A75C2998dce",

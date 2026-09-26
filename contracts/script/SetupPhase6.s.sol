@@ -35,6 +35,8 @@ interface IUserRegistry {
     function findTokenId(string calldata label) external view returns (uint256);
     function findExpiry(string calldata label) external view returns (uint64);
     function getSubregistry(string calldata label) external view returns (address);
+    function getResolver(string calldata label) external view returns (address);
+    function setResolver(uint256 anyId, address resolver) external;
 }
 
 /// @title SetupPhase6
@@ -141,11 +143,24 @@ contract SetupPhase6 is Script, HankoEnv {
 
         // The venue records the pointer; the investor makes the grant. Neither can do the other's
         // half, which is the point.
+        // The pointer lives in the resolver field. `subregistry` is what indexers read to place a
+        // registry in the hierarchy, and pointing it here made Alice's registry appear to hang
+        // under agents.tnvda.eth rather than under her own name.
         if (IUserRegistry(agentIndex).findOwner(botLabel) != e.bot) {
             vm.startBroadcast(e.deployerKey);
-            IUserRegistry(agentIndex).register(botLabel, e.bot, aliceRegistry, address(0), 0, expiry);
+            uint256 id = IUserRegistry(agentIndex).register(botLabel, e.bot, address(0), address(0), 0, expiry);
+            IUserRegistry(agentIndex).setResolver(id, aliceRegistry);
             vm.stopBroadcast();
             console.log("indexed the bot against Alice's registry");
+        } else if (IUserRegistry(agentIndex).getResolver(botLabel) != aliceRegistry) {
+            // An entry written by an earlier version points the wrong way; repair it in place so
+            // the name survives.
+            vm.startBroadcast(e.deployerKey);
+            uint256 id = IUserRegistry(agentIndex).findTokenId(botLabel);
+            IUserRegistry(agentIndex).setResolver(id, aliceRegistry);
+            IUserRegistry(agentIndex).setSubregistry(id, address(0));
+            vm.stopBroadcast();
+            console.log("repaired the bot's index entry");
         }
 
         if (IUserRegistry(aliceRegistry).findOwner(botLabel) != e.bot) {
