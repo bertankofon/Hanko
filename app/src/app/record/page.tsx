@@ -6,6 +6,8 @@ import {ensExplorer} from '@/lib/operator';
 
 export const dynamic = 'force-dynamic';
 
+export const metadata = {title: 'Record — Hanko'};
+
 const DOT: Record<AuditKind, string> = {
   granted: 'bg-pass',
   revoked: 'bg-fail',
@@ -26,7 +28,7 @@ const KIND_LABEL: Record<AuditKind, string> = {
   unwound: 'unwind',
 };
 
-export default async function AuditPage() {
+export default async function RecordPage() {
   const actors = getActors();
   const {entries, error} = await loadAudit(actors);
   const swapRegistry = hankoAddress('SwapRegistry');

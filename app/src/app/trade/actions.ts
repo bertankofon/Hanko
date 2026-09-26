@@ -4,13 +4,12 @@ import {
   BaseError,
   ContractFunctionRevertedError,
   decodeErrorResult,
-  formatUnits,
   maxUint160,
   parseUnits,
   type Address,
 } from 'viem';
 import {getActors} from '@/lib/actors';
-import {getClient} from '@/lib/hanko';
+import {formatAmount, getClient} from '@/lib/hanko';
 import {actorForRole, getViewer} from '@/lib/role';
 import type {SwapResult} from '@/lib/swap-result';
 import {
@@ -258,8 +257,8 @@ export async function swap(request: SwapRequest): Promise<SwapResult> {
       status: 'ok',
       headline: `${actor.name} ${buying ? 'bought' : 'sold'} ${stock.symbol}`,
       detail: buying
-        ? `Spent ${request.amount} USDC, received ${formatUnits(moved, 18)} ${stock.symbol}.`
-        : `Sold ${formatUnits(moved, 18)} ${stock.symbol}.`,
+        ? `Spent ${request.amount} USDC, received ${formatAmount(moved, 18, 4)} ${stock.symbol}.`
+        : `Sold ${formatAmount(moved, 18, 4)} ${stock.symbol}.`,
       txHash: hash,
     };
   } catch (err) {

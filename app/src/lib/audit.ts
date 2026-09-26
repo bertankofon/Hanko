@@ -107,9 +107,9 @@ export async function loadAudit(
   const sources: {address: Address; label: string}[] = [
     ...(
       [
-        ['SwapRegistry', 'swap.tnvda.eth'],
-        ['LpRegistry', 'lp.tnvda.eth'],
-        ['AgentIndex', 'agents.tnvda.eth'],
+        ['SwapRegistry', 'swap.hanko.eth'],
+        ['LpRegistry', 'lp.hanko.eth'],
+        ['AgentIndex', 'agents.hanko.eth'],
         ['PermissionsAdapter', 'permissions adapter'],
       ] as const
     ).flatMap(([key, label]) => {
@@ -187,7 +187,7 @@ function describe(
       return {
         kind: 'granted',
         text:
-          contractLabel === 'agents.tnvda.eth'
+          contractLabel === 'agents.hanko.eth'
             ? `${who} recorded as an agent`
             : `${who} granted a name in ${contractLabel}`,
       };
