@@ -4,6 +4,8 @@
 > havuzları için issuer'ın verdiği, süreli, iptal edilebilir ve delege edilebilir onchain mühür.
 
 > Bu dosya Claude Code'un proje hafızasıdır. Her oturumda baştan okunur.
+> **Yeni bir oturuma başlıyorsan önce `docs/HANDOVER.md`'yi oku** — nerede kaldığımız,
+> canlı adresler, alınmış kararlar ve tekrar düşmemen gereken tuzaklar orada.
 > Ayrıntılı faz planı: `docs/PHASES.md`. Öğrenme notları: `docs/LEARNINGS.md`.
 
 ## 0. Nasıl çalışıyoruz (EN ÖNEMLİ BÖLÜM)
