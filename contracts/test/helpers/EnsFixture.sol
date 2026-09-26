@@ -61,6 +61,8 @@ interface IUserRegistryLike {
     ) external returns (uint256);
     function unregister(uint256 tokenId) external;
     function setParent(address parent, string calldata label) external;
+    function setSubregistry(uint256 anyId, address registry) external;
+    function grantRoles(uint256 anyId, uint256 roleBitmap, address account) external returns (bool);
     function findOwner(string calldata label) external view returns (address);
     function findTokenId(string calldata label) external view returns (uint256);
     function findExpiry(string calldata label) external view returns (uint64);
@@ -99,6 +101,8 @@ abstract contract EnsFixture is CommonBase {
     address internal tnvdaRegistry;
     address internal swapRegistry;
     address internal lpRegistry;
+    /// @dev `agents.tnvda.eth` — one entry per agent, pointing at its principal's registry.
+    address internal agentIndex;
 
     /// @notice Registers `tnvda.eth` to `operator` and hangs the swap and lp registries under it.
     /// @dev Must be called inside a prank as `operator`.
@@ -106,6 +110,7 @@ abstract contract EnsFixture is CommonBase {
         tnvdaRegistry = _deployRegistry(operator, 101);
         swapRegistry = _deployRegistry(operator, 102);
         lpRegistry = _deployRegistry(operator, 103);
+        agentIndex = _deployRegistry(operator, 104);
 
         _registerSecondLevel(operator, label);
 
@@ -118,6 +123,50 @@ abstract contract EnsFixture is CommonBase {
         );
         IUserRegistryLike(tnvdaRegistry).register(
             "lp", operator, lpRegistry, address(0), OPERATOR_ROLES_WITH_ADMIN, type(uint64).max
+        );
+        IUserRegistryLike(tnvdaRegistry).register(
+            "agents", operator, agentIndex, address(0), OPERATOR_ROLES_WITH_ADMIN, type(uint64).max
+        );
+    }
+
+    /// @notice Gives `principal` a registry of their own, hung under their name in `swap`.
+    /// @dev Must run as the operator, and the principal must follow with `adoptParent`.
+    ///
+    ///      The principal is the registry's only root operator: the venue attaches the registry
+    ///      but cannot put agents in it, so a delegation is always the investor's act.
+    ///
+    ///      `ROLE_SET_SUBREGISTRY` on the principal's own name is granted so they can re-point it
+    ///      later. It does not make the name transferable — that is a separate role.
+    function giveOwnRegistry(address principal, uint256 salt) internal returns (address registry) {
+        registry = _deployRegistry(principal, salt);
+
+        uint256 tokenId = IUserRegistryLike(swapRegistry).findTokenId(labelFor(principal));
+        IUserRegistryLike(swapRegistry).grantRoles(tokenId, ROLE_SET_SUBREGISTRY, principal);
+        IUserRegistryLike(swapRegistry).setSubregistry(tokenId, registry);
+    }
+
+    /// @notice Records which name the principal's registry hangs from.
+    /// @dev Must run as the principal. Without this back-link `getParent()` is empty and the
+    ///      checker cannot tell whose registry it is looking at — the cascade depends on it.
+    function adoptParent(address registry, address principal) internal {
+        IUserRegistryLike(registry).setParent(swapRegistry, labelFor(principal));
+    }
+
+    /// @notice Records `agent` in the index as acting for whoever owns `principalRegistry`.
+    /// @dev Must run as the operator: the venue records the delegation, the investor grants it.
+    ///      The entry is a pointer and nothing more — an agent listed here but holding no name
+    ///      inside the principal's registry has no permission at all.
+    function indexAgent(address agent, address principalRegistry, uint64 expiry) internal {
+        IUserRegistryLike(agentIndex).register(
+            labelFor(agent), agent, principalRegistry, address(0), 0, expiry
+        );
+    }
+
+    /// @notice The grant itself: a name for `agent` inside `principalRegistry`.
+    /// @dev Must run as the principal, who holds `ROLE_REGISTRAR` on their own registry.
+    function grantAgentName(address principalRegistry, address agent, uint64 expiry) internal {
+        IUserRegistryLike(principalRegistry).register(
+            labelFor(agent), agent, address(0), address(0), 0, expiry
         );
     }
 

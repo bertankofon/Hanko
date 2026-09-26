@@ -463,7 +463,7 @@ contract PermissionedPoolForkTest is Test, EnsFixture {
         buildEnsTree(issuer, "hankopool");
 
         EnsAllowlistChecker ensChecker =
-            new EnsAllowlistChecker(IEnsRegistry(swapRegistry), IEnsRegistry(lpRegistry));
+            new EnsAllowlistChecker(IEnsRegistry(swapRegistry), IEnsRegistry(lpRegistry), IEnsRegistry(agentIndex));
 
         expiry = uint64(block.timestamp) + ttl;
         admit(swapRegistry, alice, expiry);
@@ -473,6 +473,76 @@ contract PermissionedPoolForkTest is Test, EnsFixture {
         // wallet the pool refuses could still take delivery of the underlying directly.
         adapter.updateAllowListChecker(IAllowlistChecker(address(ensChecker)));
         token.setChecker(IAllowlistChecker(address(ensChecker)));
+        vm.stopPrank();
+    }
+
+
+    /// Alice hands her bot the right to trade her position, and the pool honours it. The bot has
+    /// no name of its own under swap.tnvda.eth — its permission exists only inside Alice's
+    /// registry, so it is hers to give and hers to lose.
+    function test_agentTradesForItsPrincipal() public {
+        _mintPosition(alice, 500e18, 100_000e6);
+        uint64 expiry = _switchToEns(2 hours);
+        _approveRouter(bot);
+
+        // Before the delegation the bot is just another wallet.
+        vm.expectRevert();
+        _swapUsdcForTnvda(bot, 100e6);
+
+        _delegateToBot(expiry);
+        _swapUsdcForTnvda(bot, 100e6);
+    }
+
+    /// The agent trades; it does not get to commit its principal's capital as liquidity.
+    function test_agentCannotProvideLiquidity() public {
+        _mintPosition(alice, 500e18, 100_000e6);
+        uint64 expiry = _switchToEns(2 hours);
+        _delegateToBot(expiry);
+
+        vm.prank(issuer);
+        token.mint(bot, 10e18);
+
+        _fundPosm(bot, 10e18, 2_000e6);
+        bool adapterIsZero = Currency.unwrap(key.currency0) == address(adapter);
+        (uint256 amount0, uint256 amount1) =
+            adapterIsZero ? (uint256(10e18), uint256(2_000e6)) : (uint256(2_000e6), uint256(10e18));
+        bytes memory plan = _mintPlan(bot, amount0, amount1);
+
+        vm.prank(bot);
+        vm.expectRevert();
+        IPositionManager(POSM).modifyLiquidities(plan, block.timestamp + 60);
+    }
+
+    /// The phase in one test: revoking the investor stops their bot in the same transaction, and
+    /// nobody touched the bot. There is no list of agents to go and clean up — ENS simply stops
+    /// resolving the registry the bot's name lives in.
+    function test_revokingThePrincipalStopsTheAgentsSwaps() public {
+        _mintPosition(alice, 500e18, 100_000e6);
+        uint64 expiry = _switchToEns(2 hours);
+        _delegateToBot(expiry);
+        _approveRouter(bot);
+
+        _swapUsdcForTnvda(bot, 100e6); // the bot is trading happily
+
+        vm.startPrank(issuer);
+        revokeName(swapRegistry, alice);
+        vm.stopPrank();
+
+        vm.expectRevert();
+        _swapUsdcForTnvda(bot, 100e6);
+    }
+
+    /// @dev Alice gets a registry of her own and puts the bot in it; the venue records the pointer
+    ///      that makes the bot findable from its address.
+    function _delegateToBot(uint64 expiry) internal {
+        vm.startPrank(issuer);
+        address aliceRegistry = giveOwnRegistry(alice, 301);
+        indexAgent(bot, aliceRegistry, expiry);
+        vm.stopPrank();
+
+        vm.startPrank(alice);
+        adoptParent(aliceRegistry, alice);
+        grantAgentName(aliceRegistry, bot, expiry);
         vm.stopPrank();
     }
 
