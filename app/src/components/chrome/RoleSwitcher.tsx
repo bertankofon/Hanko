@@ -9,6 +9,23 @@ export interface RoleOption {
   label: string;
   blurb: string;
   address: string | null;
+  /** What this wallet holds right now, read from chain — not part of its name. */
+  seal: string;
+  cleared: boolean;
+}
+
+function Seal({option}: {option: RoleOption}) {
+  if (option.id === 'operator') return null;
+  return (
+    <span
+      className={[
+        'rounded-full border px-2 py-0.5 text-xs font-medium',
+        option.cleared ? 'border-pass/40 text-pass' : 'border-line text-muted',
+      ].join(' ')}
+    >
+      {option.seal}
+    </span>
+  );
 }
 
 /**
@@ -58,6 +75,7 @@ export function RoleSwitcher({options, current}: {options: RoleOption[]; current
       >
         <span className="text-xs uppercase tracking-[0.14em] text-muted">Viewing as</span>
         <span className="text-base font-medium">{active.label}</span>
+        <Seal option={active} />
         <span className="text-muted">▾</span>
       </button>
 
@@ -72,10 +90,11 @@ export function RoleSwitcher({options, current}: {options: RoleOption[]; current
                 onClick={() => choose(option.id)}
                 className="block w-full border-b border-line px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-panel-2"
               >
-                <span className="flex items-center gap-2">
+                <span className="flex flex-wrap items-center gap-2">
                   <span className={isActive ? 'font-semibold text-seal' : 'font-medium'}>
                     {option.label}
                   </span>
+                  <Seal option={option} />
                   {isActive && <span className="text-xs text-seal">current</span>}
                 </span>
                 <span className="mt-0.5 block text-sm text-muted">{option.blurb}</span>

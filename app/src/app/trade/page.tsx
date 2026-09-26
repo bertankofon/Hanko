@@ -161,6 +161,11 @@ export default async function TradePage({
         <div className="mt-4 rounded-2xl border border-line bg-panel p-4 text-sm">
           <p className="font-medium">Acting as {viewer.label}</p>
           <p className="mt-1 text-muted">{viewer.blurb}</p>
+          <p className="mt-2 text-muted">
+            {selected.maySwap
+              ? 'Holds a seal on this venue right now.'
+              : 'Holds no seal right now. The venue operator grants and withdraws them.'}
+          </p>
           {viewer.address && (
             <a
               className="mt-2 block font-mono text-xs text-muted underline underline-offset-4 hover:text-ink"

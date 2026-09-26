@@ -117,6 +117,7 @@ export default async function AccessPage() {
         <section className="rounded-2xl border border-line bg-panel p-5">
           <p className="text-sm uppercase tracking-[0.14em] text-muted">Your seals</p>
           <p className="mt-1 text-lg font-semibold">{viewer.label}</p>
+          <p className="mt-1 text-sm text-muted">{viewer.blurb}</p>
 
           <ul className="mt-4 space-y-2 text-base">
             <li className={you?.swap ? 'text-pass' : 'text-muted'}>

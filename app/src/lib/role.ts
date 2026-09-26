@@ -10,6 +10,13 @@ import {getActors, type Actor} from './actors';
  * is to let the visitor be a different address and watch the same screens answer differently.
  * The choice lives in a cookie so every server component can read it without threading a prop.
  */
+/**
+ * Who you can be, named by who they are rather than by what they hold.
+ *
+ * An earlier version called the fourth one "Not cleared", which stopped being true the moment the
+ * walkthrough cleared them — and left no way back, because the label no longer matched the screen.
+ * Identity is fixed; whether they hold a seal is read from chain and shown beside the name.
+ */
 export const ROLES = [
   {
     id: 'operator',
@@ -20,20 +27,20 @@ export const ROLES = [
   {
     id: 'alice',
     actor: 'Alice',
-    label: 'Cleared investor',
-    blurb: 'Holds swap and liquidity seals. Can delegate to an agent of her own.',
+    label: 'Investor',
+    blurb: 'Trades for herself, and can delegate to an agent of her own.',
   },
   {
     id: 'bot',
     actor: 'Bot',
-    label: "Investor's agent",
-    blurb: 'A trading bot acting for the investor. Swap only, and only while she is cleared.',
+    label: "Investor's bot",
+    blurb: 'A trading agent. Swap only, and only while she is cleared.',
   },
   {
     id: 'stranger',
     actor: 'Stranger',
-    label: 'Not cleared',
-    blurb: 'Funded and willing. The pool refuses every attempt.',
+    label: 'A visitor',
+    blurb: 'Funded and willing. Starts out with no seal at all.',
   },
 ] as const;
 

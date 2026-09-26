@@ -4,6 +4,7 @@ import {RoleSwitcher} from '@/components/chrome/RoleSwitcher';
 import {TabNav, type Tab} from '@/components/TabNav';
 import {getActors} from '@/lib/actors';
 import {getViewer, ROLES} from '@/lib/role';
+import {readSeals} from '@/lib/seals';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -28,12 +29,22 @@ export default async function RootLayout({children}: {children: React.ReactNode}
   const viewer = await getViewer();
   const actors = getActors();
 
-  const options = ROLES.map((role) => ({
-    id: role.id,
-    label: role.label,
-    blurb: role.blurb,
-    address: actors.find((a) => a.name === role.actor)?.address ?? null,
-  }));
+  // What each wallet holds is read here rather than baked into the role's name: the walkthrough
+  // changes it, and a label that has stopped being true is worse than no label.
+  const seals = await readSeals(actors.map((a) => a.address));
+
+  const options = ROLES.map((role) => {
+    const address = actors.find((a) => a.name === role.actor)?.address ?? null;
+    const seal = address ? seals.get(address.toLowerCase()) : undefined;
+    return {
+      id: role.id,
+      label: role.label,
+      blurb: role.blurb,
+      address,
+      seal: seal?.label ?? 'unknown',
+      cleared: Boolean(seal?.swap || seal?.liquidity),
+    };
+  });
 
   return (
     <html lang="en">
