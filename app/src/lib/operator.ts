@@ -51,6 +51,72 @@ export const registryAdminAbi = [
     stateMutability: 'view',
   },
   {
+    type: 'function',
+    name: 'register',
+    inputs: [
+      {name: 'label', type: 'string'},
+      {name: 'owner', type: 'address'},
+      {name: 'registry', type: 'address'},
+      {name: 'resolver', type: 'address'},
+      {name: 'roleBitmap', type: 'uint256'},
+      {name: 'expiry', type: 'uint64'},
+    ],
+    outputs: [{type: 'uint256'}],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'findExpiry',
+    inputs: [{name: 'label', type: 'string'}],
+    outputs: [{type: 'uint64'}],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'getSubregistry',
+    inputs: [{name: 'label', type: 'string'}],
+    outputs: [{type: 'address'}],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'getResolver',
+    inputs: [{name: 'label', type: 'string'}],
+    outputs: [{type: 'address'}],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'setSubregistry',
+    inputs: [
+      {name: 'tokenId', type: 'uint256'},
+      {name: 'registry', type: 'address'},
+    ],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'setResolver',
+    inputs: [
+      {name: 'tokenId', type: 'uint256'},
+      {name: 'resolver', type: 'address'},
+    ],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'grantRoles',
+    inputs: [
+      {name: 'tokenId', type: 'uint256'},
+      {name: 'roleBitmap', type: 'uint256'},
+      {name: 'account', type: 'address'},
+    ],
+    outputs: [{type: 'uint256'}],
+    stateMutability: 'nonpayable',
+  },
+  {
     type: 'event',
     name: 'LabelRegistered',
     inputs: [

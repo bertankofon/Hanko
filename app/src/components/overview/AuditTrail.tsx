@@ -12,7 +12,7 @@ import {useStepLoop} from './useStepLoop';
  */
 
 const EVENTS = [
-  {kind: 'granted', text: 'capital firm granted a name in swap.tnvda.eth', tone: 'var(--pass)'},
+  {kind: 'granted', text: 'capital firm granted a name in swap.hanko.eth', tone: 'var(--pass)'},
   {kind: 'granted', text: 'bot recorded as an agent of the capital firm', tone: 'var(--pass)'},
   {kind: 'trade', text: 'bot traded 0.72 tNVDA against 100 USDC', tone: 'var(--pending)'},
   {kind: 'halt', text: 'trading halted for this asset', tone: 'var(--fail)'},

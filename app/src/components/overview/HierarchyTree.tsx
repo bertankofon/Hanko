@@ -22,18 +22,18 @@ interface Branch {
 }
 
 const BRANCHES: Branch[] = [
-  {indent: 0, name: 'tnvda.eth', note: 'the venue registers the asset', at: 1},
-  {indent: 1, name: 'swap.tnvda.eth', note: 'a name here means: may trade', at: 2},
-  {indent: 1, name: 'lp.tnvda.eth', note: 'a name here means: may provide liquidity', at: 3},
+  {indent: 0, name: 'hanko.eth', note: 'the venue, not the asset', at: 1},
+  {indent: 1, name: 'swap.hanko.eth', note: 'a name here means: may trade', at: 2},
+  {indent: 1, name: 'lp.hanko.eth', note: 'a name here means: may provide liquidity', at: 3},
   {
     indent: 2,
-    name: '0x053674af….swap.tnvda.eth',
+    name: '0x053674af….swap.hanko.eth',
     note: 'the capital firm, cleared once',
     at: 4,
   },
   {
     indent: 3,
-    name: '0xc408d425….0x053674af….swap.tnvda.eth',
+    name: '0xc408d425….0x053674af….swap.hanko.eth',
     note: 'its bot — the firm grants this itself, no second clearance',
     at: 5,
   },

@@ -53,7 +53,7 @@ export default async function AuditPage() {
           show up in{' '}
           <a
             className="underline underline-offset-2 hover:text-ink"
-            href={ensExplorer('tnvda.eth')}
+            href={ensExplorer('hanko.eth')}
             target="_blank"
             rel="noreferrer"
           >

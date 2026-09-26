@@ -118,7 +118,7 @@ export default async function SystemPage() {
       />
       <CheckCard
         title="ENSv2"
-        subtitle="Is the Sepolia stack the 15 Sep deployment we pinned, and is tnvda.eth still available?"
+        subtitle="Is the Sepolia stack the 15 Sep deployment we pinned, and and is the venue's ENS root in place?"
         rows={by('ens')}
         chainId={chainId}
       />

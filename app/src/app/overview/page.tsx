@@ -88,10 +88,10 @@ export default function OverviewPage() {
             Hanko is that layer: permissions held as ENS names, enforced by the pool on every swap.
           </p>
           <div className="mt-9 flex flex-wrap gap-3">
-            <Link href="/pool" className={primaryButton}>
+            <Link href="/trade" className={primaryButton}>
               Open the venue
             </Link>
-            <Link href="/identity" className={ghostButton}>
+            <Link href="/access" className={ghostButton}>
               See the permissions
             </Link>
           </div>
@@ -146,8 +146,8 @@ export default function OverviewPage() {
         <Reveal delay={220}>
           <div className="mt-8 space-y-4">
             <Note bold="The shape of the name is the permission.">
-              A name under <span className="font-mono">swap.tnvda.eth</span> may trade. One under{' '}
-              <span className="font-mono">lp.tnvda.eth</span> may provide liquidity. A name sitting
+              A name under <span className="font-mono">swap.hanko.eth</span> may trade. One under{' '}
+              <span className="font-mono">lp.hanko.eth</span> may provide liquidity. A name sitting
               inside an investor&apos;s own registry is their agent, and can only trade.
             </Note>
             <Note bold="A mapping would answer yes or no and forget the rest.">
@@ -296,10 +296,10 @@ export default function OverviewPage() {
           <img src="/brand/hanko-lockup-trimmed.webp" alt="Hanko" className="mb-10 h-14 w-auto sm:h-16" />
           <p className="text-section text-balance">Everything else on this site is read from Sepolia.</p>
           <div className="mt-9 flex flex-wrap gap-3">
-            <Link href="/pool" className={primaryButton}>
+            <Link href="/trade" className={primaryButton}>
               Open the venue
             </Link>
-            <Link href="/audit" className={ghostButton}>
+            <Link href="/record" className={ghostButton}>
               Read the record
             </Link>
           </div>

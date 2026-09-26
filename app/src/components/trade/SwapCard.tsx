@@ -114,9 +114,10 @@ export function SwapCard(props: SwapCardProps) {
         disabled={pending}
         className={[
           'mt-3 w-full rounded-xl px-4 py-3.5 text-base font-semibold transition-colors',
+          // Allowed and refused must not look alike: the whole screen is about which one you are.
           blocked
-            ? 'border border-fail/50 bg-fail/10 text-fail hover:bg-fail/15'
-            : 'border border-seal bg-seal/15 text-seal hover:bg-seal/25',
+            ? 'border border-dashed border-fail/60 text-fail hover:bg-fail/10'
+            : 'bg-seal text-white hover:brightness-110',
           pending ? 'opacity-60' : '',
         ].join(' ')}
       >

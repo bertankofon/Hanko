@@ -6,7 +6,7 @@ import {useStepLoop} from './useStepLoop';
  * The same socket, with Hanko in it.
  *
  * The pool still asks about an address. What changes is what the answer is made of: the checker
- * resolves that address into a name under `tnvda.eth`, and the shape of the name carries what a
+ * resolves that address into a name under `hanko.eth`, and the shape of the name carries what a
  * boolean cannot — which permission, whose agent, and for how long.
  *
  * Three arrivals, because the three shapes are the whole point: an investor with names of their
@@ -28,7 +28,7 @@ const ARRIVALS: Arrival[] = [
   {
     label: 'a cleared investor',
     address: '0x053674af…8055c9',
-    segments: ['0x053674af…', '.swap', '.tnvda.eth'],
+    segments: ['0x053674af…', '.swap', '.hanko.eth'],
     found: true,
     swap: true,
     lp: true,
@@ -37,7 +37,7 @@ const ARRIVALS: Arrival[] = [
   {
     label: 'her trading bot',
     address: '0xc408d425…2b2226',
-    segments: ['0xc408d425…', '.0x053674af…', '.swap.tnvda.eth'],
+    segments: ['0xc408d425…', '.0x053674af…', '.swap.hanko.eth'],
     found: true,
     swap: true,
     lp: false,
