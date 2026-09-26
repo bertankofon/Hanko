@@ -14,7 +14,7 @@ import {dirname, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {config as loadEnv} from 'dotenv';
 import {privateKeyToAccount} from 'viem/accounts';
-import {runChecks, type CheckResult, type CheckStatus} from './lib/checks.js';
+import {runChecks, type CheckResult, type CheckStatus} from './lib/checks';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, '..');

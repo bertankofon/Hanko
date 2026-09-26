@@ -25,7 +25,7 @@ import {
   permissionsAdapterFactoryAbi,
   permissionsAdapterFactoryRefAbi,
   poolManagerRefAbi,
-} from './abis.js';
+} from './abis';
 
 /**
  * `unknown` means we could not prove the claim (RPC error, unexpected ABI) —

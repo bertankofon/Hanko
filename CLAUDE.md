@@ -151,9 +151,16 @@ Uniswap v4 altyapısını kullanabilmesi içindir.
 eşleştiğini onchain'den oku.
 
 Kaynak kod: `Uniswap/v4-periphery` → `src/hooks/permissionedPools/` (PermissionsAdapter,
-PermissionsAdapterFactory, interfaces/IAllowlistChecker.sol, libraries/PermissionFlags.sol).
+PermissionsAdapterFactory, PermissionedPositionManager, PermissionedV4Router,
+interfaces/IAllowlistChecker.sol, libraries/PermissionFlags.sol).
+⚠️ **PermissionedHooks v4-periphery'de DEĞİL** — `Uniswap/v4-hooks-public` →
+`src/permissioned-pools/PermissionedHooks.sol` (v4-periphery'den 15daba8b ile çıkarılmış).
 Factory herkese açık: `createPermissionsAdapter(token, owner, checker)` ve
 `verifyPermissionsAdapter(adapter)` (adapter bakiyesi > 0 olmalı).
+Faz 0'da doğrulanan imzalar: router/hook/posm üçü de `PERMISSIONS_ADAPTER_FACTORY()` getter'ını
+taşıyor; factory `POOL_MANAGER()`, `permissionsAdapterOf(address)`,
+`verifiedPermissionsAdapterOf(address)` sunuyor. `PermissionFlag` tipi `bytes2`:
+`SWAP_ALLOWED = 0x0001`, `LIQUIDITY_ALLOWED = 0x0002`, `ALL_ALLOWED = 0xFFFF`.
 
 ### ENSv2 (kaynak: `ensdomains/contracts-v2` @ `366de741187e38686c904242753c532b7de70d47`,
 `contracts/deployments/sepolia/*.json`, deploy tarihi 2026-09-15)
@@ -173,7 +180,9 @@ Factory herkese açık: `createPermissionsAdapter(token, owner, checker)` ve
 ⚠️ `main` branch'teki Sepolia dosyaları ESKİ (Haziran) deployment'ı gösterir. Commit'i kullan.
 ⚠️ ENS, Sepolia stack'ini birkaç kez yeniden deploy etti; bir "hackathon deployment" da olabilir.
 Kontrol: `cast call 0xeEeEEEeE14D718C2B47D9923Deab1335E144EeEe "ROOT_REGISTRY()(address)"`
-→ `0x9703…a9ce` bekleniyor. Değilse kullanıcıya söyle (ENS booth'una sorulacak).
+→ `0x9703…a9ce` bekleniyor. **Faz 0'da doğrulandı: eşleşiyor**, yani 15 Eylül deployment'ı canlı
+ve ENS booth'una sorulacak bir şey yok. (Ayrıca: sabit proxy doğrudan UniversalResolverV2'ye
+değil, `ManagedUniversalResolverProxy` `0x6d80F217…e6F1` üzerinden bağlanıyor.)
 ABI'leri bu JSON dosyalarından al (her dosya tam ABI içerir). İlgili fonksiyonlar (doğrulandı):
 `register(string,address,address,address,uint256,uint64)`, `unregister(uint256)`,
 `findOwner(string) view`, `getState(uint256) view`, `grantRootRoles`, `revokeRoles`,
@@ -192,8 +201,9 @@ WORLD_ENV=staging|production
 
 ## 6. Sık hatalar (bunları kontrol et)
 - Yeni adapter'da swap **varsayılan olarak kapalı** → `updateSwappingEnabled(true)`.
-- Adapter admin: `updateAllowedWrapper(router v2.2)`, `updateAllowedWrapper(permissioned posm)`,
-  `updateAllowedHook(PermissionedHooks)`. Unutulursa her şey revert eder.
+- Adapter admin (imzalar iki argümanlı): `updateAllowedWrapper(router v2.2, true)`,
+  `updateAllowedWrapper(permissioned posm, true)`, `updateAllowedHook(PermissionedHooks, true)`.
+  Unutulursa her şey revert eder.
 - PoolKey currency'si **underlying token değil, adapter adresi**.
 - Adapter'ı factory'de doğrulamak için önce adapter'a ≥1 wei tNVDA gönder (token allowlist'i
   adapter'a izin vermeli).
