@@ -203,13 +203,30 @@ WORLD_ENV=staging|production
 ```
 
 ## 6. Sık hatalar (bunları kontrol et)
+
+> Faz 2'de doğrulandı. Kurulum sırasının tek yazılı kaynağı Uniswap'in kendi entegrasyon
+> testleri: `v4-periphery/test/hooks/permissionedPools/…::setUpPermissionsAdapter`.
+> Sıra kodda `contracts/src/PermissionedPoolWiring.sol`'de; script ve testler onu çağırır.
+
+- **Token allowlist'ine BEŞ protokol adresi girer, sadece adapter değil:** adapter, PoolManager,
+  PermissionedPositionManager, UniversalRouter v2.2, PermissionsAdapterFactory, PermissionedHooks.
+  Hepsi bir noktada underlying'e dokunuyor. Eksik olursa wrap bizim `RecipientNotAllowed`
+  hatamızla patlar ve sebep Uniswap tarafında aranır — yanlış yerde saat kaybı.
+- **Doğrulama için düz transfer değil `depositForVerification(amount)` kullan** (önce `approve`).
+  Factory doğrulamadan önce adapter'ın bakiyesine bakıyor; bu fonksiyon ayrıca filtrelenebilir
+  bir `VerificationDeposit` event'i yayınlıyor. Sıra: approve → depositForVerification →
+  `verifyPermissionsAdapter`.
 - Yeni adapter'da swap **varsayılan olarak kapalı** → `updateSwappingEnabled(true)`.
-- Adapter admin (imzalar iki argümanlı): `updateAllowedWrapper(router v2.2, true)`,
-  `updateAllowedWrapper(permissioned posm, true)`, `updateAllowedHook(PermissionedHooks, true)`.
-  Unutulursa her şey revert eder.
+  (Aynı anahtar Faz 5'teki Trading Halt.)
+- Adapter admin (imzalar iki argümanlı): `updateAllowedWrapper(PoolManager, true)`,
+  `updateAllowedWrapper(router v2.2, true)`, `updateAllowedWrapper(permissioned posm, true)`,
+  `updateAllowedHook(PermissionedHooks, true)`. **PoolManager'ın da wrapper olması gerekiyor.**
 - PoolKey currency'si **underlying token değil, adapter adresi**.
-- Adapter'ı factory'de doğrulamak için önce adapter'a ≥1 wei tNVDA gönder (token allowlist'i
-  adapter'a izin vermeli).
+- **Currency sıralaması adapter'ın adresine bağlı ve factory düz CREATE kullanıyor** — adapter
+  deploy edilene kadar tNVDA'nın hangi tarafa düşeceği bilinmiyor. İki sıralamayı da destekle ve
+  `sqrtPriceX96`'yı birinde ters çevir. Sessiz 1e12 hatası çalışan bir havuz gibi görünür;
+  fiyatı geri okuyup test et.
+- Adapter token'ını PoolManager dışında kimse tutamaz; transfer denemesi `InvalidTransfer` verir.
 - ENS label'ları küçük harf olmalı (normalizasyon).
 
 ## 7. Teslim zorunlulukları (unutma)
