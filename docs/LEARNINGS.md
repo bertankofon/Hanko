@@ -354,3 +354,42 @@ iptali için ayrı bir mekanizma yazmak gerekmiyor.
 Sayfanın üstünde "bu sayfaya güvenmeyin" kutusu var: event'ler bizim tuttuğumuz log değil,
 kontratların yaydığı kayıtlar; aynı listeyi uygulamamız çalışmadan da herkes çekebilir. İzinler
 ENS isimleri olduğu için ENS'in kendi explorer'ında da görünüyorlar.
+
+---
+
+## Faz 7 — Çok hisseli venue, `hanko.eth`, ürün UI'ı
+
+### Ne yaptık
+- **Üç hisse listelendi** (tNVDA, tAAPL, tMSFT). Her biri kendi token'ı, adapter'ı, havuzu ve
+  likiditesi; hepsi **aynı** `EnsAllowlistChecker`'a bakıyor. `ListStock.s.sol` hisse başına
+  çalışıyor, böylece bir hata üç hisseyi değil birini götürüyor.
+- **ENS kökü `tnvda.eth` → `hanko.eth`** taşındı. Hiçbir şey yeniden kurulmadı: swap/lp/agents
+  registry'leri **aynı kontratlar**, sadece yeni köke `register` + `setParent` ile bağlandı, eski
+  entry'ler `unregister` edildi. Checker'ın immutable adresleri ve Alice'in mühürleri aynen kaldı.
+- UI, "hangi faz" ekseninden "kim soruyor" eksenine geçirildi: header'da global rol seçici,
+  sekmeler `Overview · Trade · Access · Operator · Record · Demo`.
+
+### Kararname okuması (mimariyi bu belirledi)
+Kişi seviyesi (venue geneli) ile varlık seviyesi (hisse başına) ayrı. `checkAllowlist` kişiyi
+cevaplıyor, adapter'ın `swappingEnabled`'ı varlığı. Demo'nun 6. adımı tam olarak bunu kanıtlıyor:
+tNVDA halt edilince aynı cüzdan tNVDA'da reddediliyor, aynı saniyede tAAPL alıyor.
+
+### Sürprizler
+- **Sepolia'da her tx'in onayı ~30 sn, ve reset 9 tx atıyordu → 257 saniye.** Tek tek receipt
+  beklemek yerine nonce'u bir kez okuyup hepsini arka arkaya gönderip sonunda toplu beklemek
+  süreyi **~40 saniyeye** indirdi (`sendBatch`). Ayrıca `setTrading` artık mevcut durumu okuyup
+  aynıysa hiç tx atmıyor. Demo butonu için bu fark, kullanılabilir olmakla olmamak arasındaki fark.
+- **`<img src="x.svg">` içindeki `currentColor` çalışmıyor.** SVG ayrı bir doküman olarak
+  yükleniyor, CSS kalıtımı geçmiyor. Apple logosu koyu zeminde görünmez oldu; dosyaya açık `fill`
+  yazmak gerekti.
+- **Grid item'ın varsayılan `min-width: auto` değeri**, içindeki `overflow-x-auto`'yu iptal ediyor.
+  ENS ağacı kendi paneli yerine tüm sayfayı yana kaydırıyordu; `min-w-0` çözdü.
+- **Server action'lar istemciden gelen her argümanı alır.** `swap`'ın `asActor` parametresi serbest
+  string'di, yani biri Issuer olarak işlem yaptırabilirdi. Kapalı listeye çevrildi ve operatör o
+  listede yok.
+- **Kendi build'im dev server'ı iki kere bozdu.** `pnpm build` ile `next dev` aynı `.next`
+  klasörüne yazıyor; build çalışırken açık olan dev server `Cannot find module './515.js'` veriyor.
+  Kural: dev server açıkken build alma.
+
+### Ölçüm
+Reset: 257 sn → ~40 sn. Demo'nun tamamı (8 adım) kabaca 4 dakika.

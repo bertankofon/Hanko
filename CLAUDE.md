@@ -40,8 +40,8 @@ Kullanıcı (Berti) deneyimli bir Solidity/EVM geliştiricisi. Amaç sadece çal
 
 ## 1. Proje tek cümlede
 
-Tokenize bir hisse (tNVDA) için kurulan Uniswap v4 **Permissioned Pool**'a erişim, issuer'ın
-kontrol ettiği **ENSv2 kimlikleriyle** yönetilir: süreli, devredilemez, anında iptal edilebilir,
+Venue'nun listelediği tokenize hisseler (tNVDA, tAAPL, tMSFT) için kurulan Uniswap v4
+**Permissioned Pool**'lara erişim, venue'nun kontrol ettiği **ENSv2 kimlikleriyle** yönetilir: süreli, devredilemez, anında iptal edilebilir,
 agent'lara sınırlı yetkiyle devredilebilir ve her değişiklik onchain kayıtlıdır.
 Kimliğin verilmesi için bir "credential provider" gerekir; bugün bu World ID (gerçek kişi +
 geçerli pasaport), ileride World'ün attestation'ları veya bir KYC sağlayıcısı olabilir.
@@ -101,7 +101,7 @@ Uniswap v4 altyapısını kullanabilmesi içindir.
                                         |  - nullifier daha önce kullanıldı mı? (onchain)
                                         |  - ENS register(label=wallet hex, owner=wallet, expiry)
                                         v
-             [ENSv2 UserRegistry: swap.tnvda.eth]   [ENSv2 UserRegistry: lp.tnvda.eth]
+             [ENSv2 UserRegistry: swap.hanko.eth]   [ENSv2 UserRegistry: lp.hanko.eth]
                                         ^
                                         | findOwner(label) (view)
                               [EnsAllowlistChecker.sol]  (IAllowlistChecker + ERC165)
@@ -133,8 +133,23 @@ Uniswap v4 altyapısını kullanabilmesi içindir.
 - **Actor switcher (sadece demo/dev):** Alice, Stranger, Bot, Issuer için burner key'ler
   server-side tutulur; UI'dan "şu aktör olarak işlem yap" denir. Sahnede MetaMask değiştirmekle
   uğraşmamak için. Opsiyonel olarak gerçek cüzdan bağlama da desteklenir.
-- Sekmeler (her faz bir sekme ekler): `System` · `Pool` · `Identity` · `Issuer` · `Audit` · `Demo`.
+- **Global rol seçici** header'da (`hanko_role` cookie): Venue operator · Cleared investor ·
+  Investor's agent · Not cleared. Her sunucu bileşeni `getViewer()` ile okur; sayfalar seçilen
+  role göre cevap verir. Ürünün tamamı tek bir soruyu cevapladığı için tek kontrol yeterli.
+- Sekmeler: `Overview` · `Trade` · `Access` · `Operator` (sadece operator rolünde) · `Record` ·
+  `Demo`. `System` footer'da link olarak duruyor.
+- `Demo` sekmesi sekiz adımlık rehberli akış; her adım gerçek Sepolia işlemi, son adım reset.
 - Adresler `deployments/<chainId>.json` dosyasından okunur (script'ler yazar, UI okur).
+
+### İzin modeli (ÖNEMLİ — kararname buna dayanıyor)
+**Kişi seviyesi, venue geneli:** kimin işlem yapabileceği. Tek bir `EnsAllowlistChecker`, kök
+`hanko.eth`. Bir mühür venue'nun tüm kitabına geçer. Kararname: *"standards for **persons** to
+access trading"*.
+**Varlık seviyesi, hisse başına:** neyin işleminin açık olduğu. Her hissenin kendi adapter'ı ve
+kendi `updateSwappingEnabled` anahtarı var. Kararname: *"must stop trading in a tokenized NMS
+stock concurrently with any stoppage of trading in the underlying"*.
+Bu ikisi karıştırılmamalı. `checkAllowlist(account, token)` token'ı alıyor ama yok sayıyor;
+hisse bazlı izin ileride bir token→registry eşlemesiyle eklenebilir.
 
 ### Ağlar
 - **Geliştirme:** Anvil ile Sepolia fork (`anvil --fork-url $SEPOLIA_RPC`). Hızlı, zaman ileri alınabilir.
