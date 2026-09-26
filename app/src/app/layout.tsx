@@ -50,19 +50,26 @@ export default async function RootLayout({children}: {children: React.ReactNode}
     <html lang="en">
       <body>
         <div className="mx-auto max-w-6xl px-4 py-6">
-          {/* A single bar: identity on the left, section tabs in the middle, viewer on the right.
-              The tabs are stretched to the bar's full height so the active-tab underline sits on
-              the header's own bottom border rather than under a second one. */}
-          <header className="flex flex-wrap items-stretch justify-between gap-x-8 gap-y-2 border-b border-line">
-            <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2 py-3">
-              <Link href="/overview" className="flex items-baseline gap-3">
-                {/* The mark rather than the lockup: the wordmark's own red is too dark to read
-                    small on this background, so the name is set in the app's type instead. */}
+          {/* Single-row header. Identity on the left, section tabs in the middle, viewer on the
+              right. The wordmark and the role switcher hold their natural width (`shrink-0`) and
+              never wrap; only the tabs (nav has `flex-1 min-w-0` inside `TabNav`) shrink, so if
+              they still don't fit — the operator has six of them — they wrap onto a second line
+              within their own column before pushing the switcher out of the top row. `items-
+              stretch` pulls each tab to the bar's full height, so the active-tab underline sits
+              on the header's own bottom border rather than under a second one. */}
+          <header className="flex items-stretch gap-x-4 border-b border-line">
+            <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 py-3">
+              <Link href="/overview" className="flex items-center">
+                {/* The lockup carries the wordmark's own red, which reads on this background at
+                    this size. Alt describes the mark since it is the name itself. */}
                 {/* eslint-disable-next-line @next/next/no-img-element -- fixed-size brand asset */}
-                <img src="/brand/hanko-mark-trimmed.webp" alt="" className="h-9 w-auto translate-y-1" />
-                <span className="text-3xl font-semibold tracking-tight">Hanko</span>
+                <img src="/brand/hanko-lockup-trimmed.webp" alt="Hanko" className="h-10 w-auto" />
               </Link>
-              <span className="hidden text-sm text-muted md:inline">
+              {/* Full text ink so it reads as a page subtitle next to the wordmark rather than
+                  a caption. Shown from xl up: at narrower widths the tabs and the role switcher
+                  want the width more than the tagline does, and the tagline is redundant with
+                  the wordmark that's already showing. */}
+              <span className="hidden items-center text-sm text-ink xl:inline-flex">
                 <span className="mr-3 text-line">/</span>
                 Tokenized stocks, permissioned by ENS
               </span>
@@ -70,7 +77,7 @@ export default async function RootLayout({children}: {children: React.ReactNode}
 
             <TabNav tabs={tabsFor(viewer.id)} />
 
-            <div className="flex items-center py-2">
+            <div className="flex shrink-0 items-center py-2">
               <RoleSwitcher options={options} current={viewer.id} />
             </div>
           </header>
