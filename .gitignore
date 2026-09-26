@@ -23,3 +23,9 @@ contracts/broadcast/
 
 # verification run output (regenerate with `pnpm verify`)
 deployments/verification-*.json
+
+# local fork deploy record (throwaway)
+deployments/*-local.json
+
+# next/tsc build cache
+*.tsbuildinfo
