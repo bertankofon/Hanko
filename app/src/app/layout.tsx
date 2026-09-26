@@ -24,7 +24,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
             </Link>
             <span className="hidden text-base text-muted sm:inline">
               <span className="mr-4 text-line">/</span>
-              expiring, revocable onchain seals for tokenized stock pools
+              Tokenized stocks, permissioned by ENS
             </span>
           </header>
           <TabNav />
