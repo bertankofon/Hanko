@@ -27,7 +27,7 @@ const rpcUrl =
   '';
 
 if (!rpcUrl) {
-  console.error('SEPOLIA_RPC_URL tanımlı değil ve --rpc verilmedi. .env dosyasını doldur.');
+  console.error('SEPOLIA_RPC_URL is not set and no --rpc was given. Fill in .env first.');
   process.exit(1);
 }
 
@@ -39,7 +39,7 @@ function deriveAddress(envName: string): string | null {
     const key = (raw.startsWith('0x') ? raw : `0x${raw}`) as `0x${string}`;
     return privateKeyToAccount(key).address;
   } catch {
-    console.warn(`  uyarı: ${envName} geçerli bir private key değil, atlanıyor`);
+    console.warn(`  warning: ${envName} is not a valid private key, skipping`);
     return null;
   }
 }
@@ -76,11 +76,11 @@ const ICON: Record<CheckStatus, string> = {
   pending: '\u001b[90m○\u001b[0m',
 };
 const GROUP_TITLE: Record<string, string> = {
-  env: 'Ortam',
+  env: 'Environment',
   uniswap: 'Uniswap v4 Permissioned',
   ens: 'ENSv2',
-  accounts: 'Hesaplar',
-  hanko: 'Hanko kontratları',
+  accounts: 'Accounts',
+  hanko: 'Hanko contracts',
 };
 
 function printGroup(name: string, rows: CheckResult[]) {
@@ -88,16 +88,16 @@ function printGroup(name: string, rows: CheckResult[]) {
   console.log(`\n\u001b[1m${GROUP_TITLE[name] ?? name}\u001b[0m`);
   for (const r of rows) {
     console.log(`  ${ICON[r.status]} ${r.label}`);
-    console.log(`      beklenen: ${r.expected}`);
-    console.log(`      okunan:   ${r.actual}`);
+    console.log(`      expected: ${r.expected}`);
+    console.log(`      actual:   ${r.actual}`);
     if (r.status !== 'pass' && r.remediation) console.log(`      → ${r.remediation}`);
   }
 }
 
 const report = await runChecks({rpcUrl, actors, requiredEnv});
 
-console.log(`\nHanko — deployment doğrulama`);
-console.log(`RPC: ${report.rpcUrl} · chainId ${report.chainId} · blok #${report.blockNumber}`);
+console.log(`\nHanko — deployment verification`);
+console.log(`RPC: ${report.rpcUrl} · chainId ${report.chainId} · block #${report.blockNumber}`);
 
 for (const group of ['env', 'uniswap', 'ens', 'accounts', 'hanko']) {
   printGroup(
@@ -107,10 +107,10 @@ for (const group of ['env', 'uniswap', 'ens', 'accounts', 'hanko']) {
 }
 
 const {pass, fail, unknown, pending} = report.summary;
-console.log(`\n${pass} geçti · ${fail} kaldı · ${unknown} belirsiz · ${pending} bekliyor\n`);
+console.log(`\n${pass} passed · ${fail} failed · ${unknown} unknown · ${pending} pending\n`);
 
 const outPath = resolve(repoRoot, 'deployments', `verification-${report.chainId ?? 'unknown'}.json`);
 writeFileSync(outPath, `${JSON.stringify(report, null, 2)}\n`);
-console.log(`Rapor: ${outPath}`);
+console.log(`Report: ${outPath}`);
 
 process.exit(fail > 0 ? 1 : 0);

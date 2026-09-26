@@ -105,11 +105,11 @@ async function attempt(
     const message = err instanceof Error ? err.message.split('\n')[0] : String(err);
     return {
       ...base,
-      actual: `çağrı başarısız: ${message}`,
+      actual: `call failed: ${message}`,
       status: 'unknown',
       remediation:
         base.remediation ??
-        'RPC hatası veya beklenmeyen ABI. Kontratı Etherscan\'de aç ve fonksiyonun gerçekten var olduğunu doğrula.',
+        'RPC error or an unexpected ABI. Open the contract on Etherscan and confirm the function really exists.',
     };
   }
 }
@@ -152,11 +152,11 @@ export async function runChecks(opts: RunOptions): Promise<VerificationReport> {
       {
         id: 'env.chainId',
         group: 'env',
-        label: 'RPC ulaşılabilir ve doğru ağ',
+        label: 'RPC reachable and on the right network',
         expected: `chainId ${d.chainId}`,
         howChecked: 'eth_chainId + eth_blockNumber',
         source: 'deployments/11155111.json',
-        remediation: 'SEPOLIA_RPC_URL bir Sepolia endpoint\'i mi? Anvil fork için --rpc http://127.0.0.1:8545 kullan.',
+        remediation: 'Is SEPOLIA_RPC_URL a Sepolia endpoint? For an anvil fork pass --rpc http://127.0.0.1:8545.',
       },
       async () => {
         chainId = await client.getChainId();
@@ -164,7 +164,7 @@ export async function runChecks(opts: RunOptions): Promise<VerificationReport> {
         latencyMs = Date.now() - startedAt;
         blockNumber = block.toString();
         return {
-          actual: `chainId ${chainId} · blok #${blockNumber} · ${latencyMs}ms`,
+          actual: `chainId ${chainId} · block #${blockNumber} · ${latencyMs}ms`,
           ok: chainId === d.chainId,
         };
       },
@@ -175,13 +175,13 @@ export async function runChecks(opts: RunOptions): Promise<VerificationReport> {
     results.push({
       id: `env.var.${name}`,
       group: 'env',
-      label: `${name} tanımlı`,
-      expected: 'tanımlı',
-      actual: present ? 'tanımlı' : 'eksik',
+      label: `${name} is set`,
+      expected: 'set',
+      actual: present ? 'set' : 'missing',
       status: present ? 'pass' : 'fail',
-      howChecked: 'process.env (değer okunmaz, sadece varlığı)',
+      howChecked: 'process.env (presence only; the value is never read)',
       source: '.env.example',
-      remediation: present ? undefined : `.env dosyasına ${name} ekle.`,
+      remediation: present ? undefined : `Add ${name} to .env.`,
     });
   }
 
@@ -192,12 +192,12 @@ export async function runChecks(opts: RunOptions): Promise<VerificationReport> {
         {
           id: `code.${name}`,
           group,
-          label: `${name} kodu var`,
+          label: `${name} has code`,
           address,
           expected: 'extcodesize > 0',
           howChecked: `eth_getCode(${short(address)})`,
           source: group === 'ens' ? 'ensdomains/contracts-v2 (pinned)' : 'Uniswap/contracts (pinned)',
-          remediation: `${name} bu ağda deploy edilmemiş. deployments/11155111.json'daki adresi ve ağı kontrol et.`,
+          remediation: `${name} is not deployed on this network. Check the address and the network in deployments/11155111.json.`,
         },
         async () => {
           const code = await client.getCode({address: getAddress(address)});
@@ -218,19 +218,19 @@ export async function runChecks(opts: RunOptions): Promise<VerificationReport> {
       label: 'UniversalRouter v2.2 → PERMISSIONS_ADAPTER_FACTORY',
       address: d.uniswap.UniversalRouterV22,
       remediation:
-        'Yanlış router sürümündeyiz. v2.1.2 (0x7E4f…43f3) permissioned swap yapamaz — deployments dosyasındaki UniversalRouterV22 adresini kontrol et.',
+        'Wrong router version. v2.1.2 (0x7E4f…43f3) cannot do permissioned swaps — check the UniversalRouterV22 address in the deployments file.',
     },
     {
       id: 'uni.hooks.factory',
       label: 'PermissionedHooks → PERMISSIONS_ADAPTER_FACTORY',
       address: d.uniswap.PermissionedHooks,
-      remediation: 'Hook başka bir factory\'ye bağlı; bizim adapter\'ımızı tanımaz. Uniswap booth\'una sor.',
+      remediation: 'The hook is bound to a different factory and will not recognise our adapter. Ask at the Uniswap booth.',
     },
     {
       id: 'uni.posm.factory',
       label: 'PermissionedPositionManager → PERMISSIONS_ADAPTER_FACTORY',
       address: d.uniswap.PermissionedPositionManager,
-      remediation: 'PosM başka bir factory\'ye bağlı; LP akışı Faz 2\'de kırılır.',
+      remediation: 'The position manager is bound to a different factory; the LP flow breaks in Phase 2.',
     },
   ];
 
@@ -277,7 +277,7 @@ export async function runChecks(opts: RunOptions): Promise<VerificationReport> {
           expected: poolManager,
           howChecked: `eth_call poolManager() @ ${short(t.address)}`,
           source: 'v4-core BaseHook / v4-periphery ImmutableState',
-          remediation: 'Farklı bir PoolManager\'a bağlı — havuzu yanlış çekirdekte açarız.',
+          remediation: 'Bound to a different PoolManager — we would open the pool on the wrong core.',
         },
         async () => {
           const got = (await client.readContract({
@@ -319,17 +319,17 @@ export async function runChecks(opts: RunOptions): Promise<VerificationReport> {
     results.push({
       id: 'uni.hooks.mask',
       group: 'uniswap',
-      label: 'PermissionedHooks adres bayrakları',
+      label: 'PermissionedHooks address flags',
       address: d.uniswap.PermissionedHooks,
       expected: `0x${EXPECTED_HOOK_MASK.toString(16)} (beforeInitialize|beforeAddLiquidity|beforeSwap|afterSwap)`,
       actual: `0x${mask.toString(16)}`,
       status: mask === EXPECTED_HOOK_MASK ? 'pass' : 'fail',
-      howChecked: 'uint160(hook) & Hooks.ALL_HOOK_MASK (zincir gerekmez)',
+      howChecked: 'uint160(hook) & Hooks.ALL_HOOK_MASK (no chain call needed)',
       source: 'Uniswap/contracts PermissionedHooksDeployer.sol + v4-core Hooks.sol:26',
       remediation:
         mask === EXPECTED_HOOK_MASK
           ? undefined
-          : 'Bu adres beklenen hook izinlerini kodlamıyor — yanlış adres ya da farklı bir hook.',
+          : 'This address does not encode the expected hook permissions — wrong address, or a different hook.',
     });
   }
 
@@ -345,7 +345,7 @@ export async function runChecks(opts: RunOptions): Promise<VerificationReport> {
         howChecked: `eth_call ROOT_REGISTRY() @ ${short(d.ens.UniversalResolverProxy)}`,
         source: `ensdomains/contracts-v2 @ ${d.sources.ens.commit}`,
         remediation:
-          'ENS Sepolia stack\'i yeniden deploy edilmiş olabilir. ENS booth\'una sor: "Sepolia ENSv2 stack\'i 15 Eylül deployment\'ından sonra yenilendi mi, hackathon için sabit bir deployment var mı?" Sonra deployments/11155111.json\'u güncelle.',
+          'The ENS Sepolia stack may have been redeployed. Ask at the ENS booth: "Has the Sepolia ENSv2 stack been redeployed since the 15 Sep deployment, and is there a pinned hackathon deployment?" Then update deployments/11155111.json.',
       },
       async () => {
         const got = (await client.readContract({
@@ -365,12 +365,12 @@ export async function runChecks(opts: RunOptions): Promise<VerificationReport> {
       {
         id: 'ens.proxy.impl',
         group: 'ens',
-        label: 'Universal Resolver proxy → yönetilen proxy',
+        label: 'Universal Resolver proxy → managed proxy',
         address: d.ens.UniversalResolverProxy,
         expected: d.ens.ManagedUniversalResolverProxy,
         howChecked: `eth_call implementation() @ ${short(d.ens.UniversalResolverProxy)}`,
         source: `ensdomains/contracts-v2 @ ${d.sources.ens.commit}`,
-        remediation: 'Sabit proxy başka bir hedefe işaret ediyor — ENS stack\'i yenilenmiş olabilir.',
+        remediation: 'The fixed proxy points somewhere else — the ENS stack may have been redeployed.',
       },
       async () => {
         const got = (await client.readContract({
@@ -388,13 +388,13 @@ export async function runChecks(opts: RunOptions): Promise<VerificationReport> {
       {
         id: 'ens.managed.impl',
         group: 'ens',
-        label: 'Yönetilen proxy → UniversalResolverV2',
+        label: 'Managed proxy → UniversalResolverV2',
         address: d.ens.ManagedUniversalResolverProxy,
         expected: d.ens.UniversalResolverV2,
         howChecked: `eth_call implementation() @ ${short(d.ens.ManagedUniversalResolverProxy)}`,
         source: `ensdomains/contracts-v2 @ ${d.sources.ens.commit}`,
         remediation:
-          'Resolver sürümü değişmiş — pinlediğimiz ABI eski olabilir. ENS booth\'una sürüm sor.',
+          'The resolver version changed — our pinned ABI may be stale. Ask the ENS booth which version is current.',
       },
       async () => {
         const got = (await client.readContract({
@@ -412,12 +412,12 @@ export async function runChecks(opts: RunOptions): Promise<VerificationReport> {
       {
         id: 'ens.root.eth',
         group: 'ens',
-        label: 'RootRegistry."eth" alt kaydı → ETHRegistry',
+        label: 'RootRegistry "eth" subregistry → ETHRegistry',
         address: d.ens.RootRegistry,
         expected: d.ens.ETHRegistry,
         howChecked: `eth_call getSubregistry("eth") @ ${short(d.ens.RootRegistry)}`,
         source: `ensdomains/contracts-v2 @ ${d.sources.ens.commit}`,
-        remediation: '.eth TLD başka bir registry\'ye bağlı — tnvda.eth kaydını yanlış yere yaparız.',
+        remediation: 'The .eth TLD points at a different registry — we would register tnvda.eth in the wrong place.',
       },
       async () => {
         const got = (await client.readContract({
@@ -441,7 +441,7 @@ export async function runChecks(opts: RunOptions): Promise<VerificationReport> {
         expected: d.ens.ETHRegistry,
         howChecked: `eth_call ETH_REGISTRY() @ ${short(d.ens.ETHRegistrar)}`,
         source: `ensdomains/contracts-v2 @ ${d.sources.ens.commit}`,
-        remediation: 'Registrar başka bir registry\'ye yazıyor — Faz 3\'te tnvda.eth kaydı yanlış yere gider.',
+        remediation: 'The registrar writes to a different registry — the Phase 3 tnvda.eth registration would land in the wrong place.',
       },
       async () => {
         const got = (await client.readContract({
@@ -460,13 +460,13 @@ export async function runChecks(opts: RunOptions): Promise<VerificationReport> {
       {
         id: 'ens.tnvda.available',
         group: 'ens',
-        label: 'tnvda.eth müsait mi (Faz 3)',
+        label: 'tnvda.eth still available (Phase 3)',
         address: d.ens.ETHRegistrar,
-        expected: 'müsait',
+        expected: 'available',
         howChecked: `eth_call isAvailable("tnvda") @ ${short(d.ens.ETHRegistrar)}`,
         source: `ensdomains/contracts-v2 @ ${d.sources.ens.commit}`,
         remediation:
-          'İsim alınmış. Faz 3\'te başka bir label seç (ör. tnvda-hanko) ve CLAUDE.md ile PHASES.md\'yi güncelle.',
+          'The name is taken. Pick another label for Phase 3 (e.g. tnvda-hanko) and update CLAUDE.md and PHASES.md.',
       },
       async () => {
         const available = (await client.readContract({
@@ -475,7 +475,7 @@ export async function runChecks(opts: RunOptions): Promise<VerificationReport> {
           functionName: 'isAvailable',
           args: ['tnvda'],
         })) as boolean;
-        return {actual: available ? 'müsait' : 'alınmış', ok: available};
+        return {actual: available ? 'available' : 'taken', ok: available};
       },
     ),
   );
@@ -485,7 +485,7 @@ export async function runChecks(opts: RunOptions): Promise<VerificationReport> {
       {
         id: 'ens.usdc',
         group: 'ens',
-        label: 'MockUSDC okunabilir (kira ödemesi için)',
+        label: 'MockUSDC readable (used to pay ENS rent)',
         address: d.ens.MockUSDC,
         expected: 'symbol + decimals okunuyor',
         howChecked: `eth_call symbol()/decimals() @ ${short(d.ens.MockUSDC)}`,
@@ -508,12 +508,12 @@ export async function runChecks(opts: RunOptions): Promise<VerificationReport> {
         {
           id: `acct.${actor.name}`,
           group: 'accounts',
-          label: `${actor.name} bakiyesi`,
+          label: `${actor.name} balance`,
           address: actor.address,
           expected: `≥ ${minBalanceEth} ETH`,
           howChecked: `eth_getBalance(${short(actor.address)})`,
-          source: '.env (private key\'den türetilen adres; anahtar asla loglanmaz)',
-          remediation: `${actor.name} cüzdanına Sepolia ETH gönder (faucet veya deployer\'dan transfer).`,
+          source: '.env (address derived from the private key; the key itself is never logged)',
+          remediation: `Fund the ${actor.name} wallet with Sepolia ETH (faucet, or a transfer from the deployer).`,
         },
         async () => {
           const wei = await client.getBalance({address: getAddress(actor.address)});
@@ -532,8 +532,8 @@ export async function runChecks(opts: RunOptions): Promise<VerificationReport> {
       group: 'hanko',
       label: name,
       address: (address as string | null) ?? undefined,
-      expected: 'Faz 1+ içinde deploy edilir',
-      actual: address ? (address as string) : 'henüz deploy edilmedi',
+      expected: 'deployed in Phase 1 onwards',
+      actual: address ? (address as string) : 'not deployed yet',
       status: address ? 'pass' : 'pending',
       howChecked: 'deployments/11155111.json',
       source: 'Hanko deploy script\'leri',
@@ -564,6 +564,6 @@ export function redactRpc(url: string): string {
     const u = new URL(url);
     return `${u.protocol}//${u.host}/…`;
   } catch {
-    return 'geçersiz URL';
+    return 'invalid URL';
   }
 }

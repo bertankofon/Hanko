@@ -11,7 +11,10 @@
 Kullanıcı (Berti) deneyimli bir Solidity/EVM geliştiricisi. Amaç sadece çalışan kod değil,
 **her adımı anlayarak ve test ederek** ilerlemek. Bu yüzden:
 
-1. **Dil:** Kullanıcıyla Türkçe konuş. Kod, yorumlar, commit mesajları ve dosya isimleri İngilizce.
+1. **Dil:** Kullanıcıyla **Türkçe** konuş. Geri kalan her şey **İngilizce**: kod, yorumlar,
+   commit mesajları, dosya isimleri, **UI metinleri**, CLI çıktısı, README ve teslim dosyaları.
+   (Jüri ve sponsorlar repoya ve ekrana bakıyor; sadece sohbet Türkçe.)
+   `docs/` altındaki iç notlar (LEARNINGS.md gibi) Türkçe kalabilir.
 2. **Her faz aynı döngüyle ilerler:**
    1. **Plan:** Kod yazmadan önce fazın kavramını 5-10 cümleyle anlat (neyi, neden yapıyoruz,
       hangi kontrat neyi çağırıyor), dosya listesini ve test planını göster. **Onay bekle.**

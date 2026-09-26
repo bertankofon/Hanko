@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
-    <html lang="tr">
+    <html lang="en">
       <body>
         <div className="mx-auto max-w-6xl px-4 py-6">
           <header className="mb-1 flex items-baseline gap-3">
@@ -22,13 +22,13 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
               <span className="text-lg font-semibold tracking-tight">Hanko</span>
             </Link>
             <span className="text-sm text-muted">
-              tokenize hisse havuzları için süreli, iptal edilebilir onchain mühür
+              expiring, revocable onchain seals for tokenized stock pools
             </span>
           </header>
           <TabNav />
           <main className="py-6">{children}</main>
           <footer className="border-t border-line pt-4 text-xs text-muted">
-            ETHGlobal Tokyo 2026 · Sepolia · Her durum zincirden okunur, hiçbir değer sabit yazılmamıştır.
+            ETHGlobal Tokyo 2026 · Sepolia · Every value on this page is read from chain; nothing is hard-coded.
           </footer>
         </div>
       </body>

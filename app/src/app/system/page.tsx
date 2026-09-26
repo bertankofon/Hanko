@@ -44,11 +44,11 @@ export default async function SystemPage() {
   if (!rpcUrl) {
     return (
       <div className="rounded-xl border border-line bg-panel p-6">
-        <h1 className="text-base font-semibold">Sistem hazır mı?</h1>
+        <h1 className="text-base font-semibold">Is the system ready?</h1>
         <p className="mt-2 text-sm text-muted">
-          <code className="font-mono text-ink">SEPOLIA_RPC_URL</code> tanımlı değil, bu yüzden hiçbir kontrol
-          çalıştırılamadı. <code className="font-mono text-ink">.env.example</code> dosyasını{' '}
-          <code className="font-mono text-ink">.env</code> olarak kopyalayıp doldur, sonra bu sayfayı yenile.
+          <code className="font-mono text-ink">SEPOLIA_RPC_URL</code> is not set, so no check could run. Copy{' '}
+          <code className="font-mono text-ink">.env.example</code> to{' '}
+          <code className="font-mono text-ink">.env</code>, fill it in, then reload this page.
         </p>
       </div>
     );
@@ -72,24 +72,24 @@ export default async function SystemPage() {
             {chainId === 11155111 ? 'Sepolia' : `chainId ${chainId}`}
           </span>
           <span className="text-muted">
-            blok <span className="font-mono text-ink">#{report.blockNumber ?? '—'}</span>
+            block <span className="font-mono text-ink">#{report.blockNumber ?? '—'}</span>
           </span>
           <span className="text-muted">
             RPC <span className="font-mono text-ink">{report.rpcUrl}</span>
           </span>
           <span className="text-muted">
-            gecikme <span className="font-mono text-ink">{report.latencyMs ?? '—'}ms</span>
+            latency <span className="font-mono text-ink">{report.latencyMs ?? '—'}ms</span>
           </span>
         </div>
         <div className="flex items-center gap-3 text-xs">
           <span>
-            <span className="text-pass">{report.summary.pass} geçti</span>
-            {report.summary.fail > 0 && <span className="text-fail"> · {report.summary.fail} kaldı</span>}
+            <span className="text-pass">{report.summary.pass} passed</span>
+            {report.summary.fail > 0 && <span className="text-fail"> · {report.summary.fail} failed</span>}
             {report.summary.unknown > 0 && (
-              <span className="text-unknown"> · {report.summary.unknown} belirsiz</span>
+              <span className="text-unknown"> · {report.summary.unknown} unknown</span>
             )}
             {report.summary.pending > 0 && (
-              <span className="text-muted"> · {report.summary.pending} bekliyor</span>
+              <span className="text-muted"> · {report.summary.pending} pending</span>
             )}
           </span>
           <RefreshButton />
@@ -97,42 +97,42 @@ export default async function SystemPage() {
       </div>
 
       <CheckCard
-        title="Ortam"
-        subtitle="RPC, ağ ve .env anahtarları. Anahtar değerleri hiçbir zaman okunmaz, sadece varlıkları."
+        title="Environment"
+        subtitle="RPC, network and .env keys. Key values are never read — only whether they are set."
         rows={by('env')}
         chainId={chainId}
       />
       <CheckCard
         title="Uniswap v4 Permissioned"
-        subtitle="Router, hook ve position manager aynı adapter factory'ye ve aynı PoolManager'a bağlı mı."
+        subtitle="Do the router, the hook and the position manager share one adapter factory and one PoolManager?"
         rows={by('uniswap')}
         chainId={chainId}
       />
       <CheckCard
         title="ENSv2"
-        subtitle="Sepolia stack'i pinlediğimiz 15 Eylül deployment'ı mı, ve tnvda.eth hâlâ müsait mi."
+        subtitle="Is the Sepolia stack the 15 Sep deployment we pinned, and is tnvda.eth still available?"
         rows={by('ens')}
         chainId={chainId}
       />
       <CheckCard
-        title="Hesaplar"
-        subtitle="Private key'lerden türetilen adresler ve Sepolia bakiyeleri."
+        title="Accounts"
+        subtitle="Addresses derived from the private keys, and their Sepolia balances."
         rows={by('accounts')}
         chainId={chainId}
-        emptyNote=".env'de hiçbir private key yok, bu yüzden kontrol edilecek hesap da yok. Anahtarları girince bu kart adresleri ve Sepolia bakiyelerini gösterir."
+        emptyNote="No private keys in .env yet, so there is no account to check. Once the keys are set, this card shows each address and its Sepolia balance."
       />
       <CheckCard
-        title="Hanko kontratları"
-        subtitle="Faz 1'den itibaren deploy script'leri doldurur."
+        title="Hanko contracts"
+        subtitle="Filled in by the deploy scripts from Phase 1 onwards."
         rows={by('hanko')}
         chainId={chainId}
       />
 
       <details className="rounded-xl border border-line bg-panel">
         <summary className="cursor-pointer list-none px-4 py-3 text-sm hover:bg-panel-2">
-          <span className="text-seal">Ne oldu?</span>{' '}
+          <span className="text-seal">What happened?</span>{' '}
           <span className="text-muted">
-            Bu sayfa yüklenirken {calls.length} zincir çağrısı yapıldı ({report.ranAt}).
+            {calls.length} chain calls were made while this page loaded ({report.ranAt}).
           </span>
         </summary>
         <ul className="space-y-1 border-t border-line px-4 py-3 font-mono text-xs text-muted">

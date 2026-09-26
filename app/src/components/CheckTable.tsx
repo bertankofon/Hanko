@@ -9,10 +9,10 @@ const DOT: Record<CheckStatus, string> = {
 };
 
 const STATUS_LABEL: Record<CheckStatus, string> = {
-  pass: 'geçti',
-  fail: 'kaldı',
-  unknown: 'belirsiz',
-  pending: 'bekliyor',
+  pass: 'passed',
+  fail: 'failed',
+  unknown: 'unknown',
+  pending: 'pending',
 };
 
 function short(address: string) {
@@ -45,9 +45,9 @@ export function CheckCard({
           {subtitle && <p className="mt-0.5 text-xs text-muted">{subtitle}</p>}
         </div>
         <span className="text-xs text-muted">
-          {failed > 0 && <span className="text-fail">{failed} kaldı · </span>}
-          {unknown > 0 && <span className="text-unknown">{unknown} belirsiz · </span>}
-          {rows.length} kontrol
+          {failed > 0 && <span className="text-fail">{failed} failed · </span>}
+          {unknown > 0 && <span className="text-unknown">{unknown} unknown · </span>}
+          {rows.length} checks
         </span>
       </header>
 
@@ -75,19 +75,19 @@ export function CheckCard({
 
               <div className="space-y-2 bg-panel-2 px-4 py-3 pl-9 text-xs">
                 <dl className="grid gap-x-4 gap-y-1 sm:grid-cols-[7rem_1fr]">
-                  <dt className="text-muted">Beklenen</dt>
+                  <dt className="text-muted">Expected</dt>
                   <dd className="font-mono break-all">{row.expected}</dd>
-                  <dt className="text-muted">Okunan</dt>
+                  <dt className="text-muted">Actual</dt>
                   <dd className="font-mono break-all">{row.actual}</dd>
-                  <dt className="text-muted">Nasıl</dt>
+                  <dt className="text-muted">How</dt>
                   <dd className="font-mono break-all text-muted">{row.howChecked}</dd>
-                  <dt className="text-muted">Kaynak</dt>
+                  <dt className="text-muted">Source</dt>
                   <dd className="break-all text-muted">{row.source}</dd>
                 </dl>
 
                 {row.remediation && (
                   <p className="rounded-lg border border-line bg-panel px-3 py-2 leading-relaxed">
-                    <span className="text-seal">Ne yapmalı: </span>
+                    <span className="text-seal">What to do: </span>
                     {row.remediation}
                   </p>
                 )}

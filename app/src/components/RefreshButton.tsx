@@ -14,7 +14,7 @@ export function RefreshButton() {
       onClick={() => startTransition(() => router.refresh())}
       className="rounded-lg border border-line px-2.5 py-1 text-xs hover:bg-panel-2 disabled:opacity-50"
     >
-      {pending ? 'Okunuyor…' : 'Yenile'}
+      {pending ? 'Reading…' : 'Refresh'}
     </button>
   );
 }
