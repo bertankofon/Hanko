@@ -58,19 +58,19 @@
     "SimpleAllowlistChecker": "0xc229c68F0C22301d3b332e0EAEfB3a93ebbe683D",
     "EnsAllowlistChecker": null,
     "HumanRegistrar": null,
-    "PermissionsAdapter": null,
+    "PermissionsAdapter": "0x7060947614ECED6CA376A318C81dF6C088f00718",
     "SwapRegistry": null,
     "LpRegistry": null,
     "deployBlock": 11785312,
-    "MockUSDC": null
+    "MockUSDC": "0xB30c9206F2747f122A3AB2924a537193eCB623fa"
   },
   "pool": {
-    "currency0": null,
-    "currency1": null,
-    "fee": null,
-    "tickSpacing": null,
-    "hooks": null,
-    "initialSqrtPriceX96": null,
-    "positionTokenId": null
+    "currency0": "0x7060947614ECED6CA376A318C81dF6C088f00718",
+    "currency1": "0xB30c9206F2747f122A3AB2924a537193eCB623fa",
+    "fee": 3000,
+    "tickSpacing": 60,
+    "hooks": "0x51247E2291d290d17C08813A175AC86465EdE8c0",
+    "initialSqrtPriceX96": 1120455419495722798374638,
+    "positionTokenId": 1
   }
 }
