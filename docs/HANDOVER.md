@@ -158,10 +158,18 @@ These are the ones that are not obvious and not in the upstream docs.
 
 The user asked for a proper product UI, not the test surface we had. Agreed plan:
 
-- **Done:** `Overview` page — one large quote from the order, an animated flow diagram
-  (trader → Uniswap pool → Hanko checker → ENS, allowed/refused), official Uniswap and ENS brand
-  assets in `app/public/brand/`, minimal text. Type scale raised (body 17px); the user explicitly
-  said **no small fonts and far less text**.
+- **Done:** `Overview` page. It opens with a screenshot of the SEC press release (clickable
+  through to sec.gov) beside the SEC's own video, then a headline, then a rhythm of
+  **quote → animation → two bold notes** for each thing the order asks of a venue. Six animated
+  explainers live in `app/src/components/overview/`:
+  `PoolGate` (what Uniswap ships, with the empty checker socket), `NameResolution` (an address
+  resolving into an investor's, an agent's, or no name), `SeparatedPowers` (halt the asset vs
+  revoke one member, and roles keeping those apart), `NonTransferable` (a seal refusing to move),
+  `HierarchyTree` (the tree building itself, then a firm's revocation taking its bot with it) and
+  `AuditTrail` (events writing the record). All share `useStepLoop`, run only while on screen and
+  freeze under `prefers-reduced-motion`. Official Uniswap and ENS brand assets are in
+  `app/public/brand/`, the screenshot in `app/public/media/`. Type scale raised (body 17px); the
+  user explicitly said **no small fonts and far less text** — keep both rules.
 - **Next:** a **global role switcher** in the app chrome — pick who you are once and the whole app
   reflects it, instead of an Actor dropdown inside each panel. The user liked this a lot.
 - **Then:** rename tabs (Pool → Trade, Identity → Access, Venue operator → Operator), restyle
