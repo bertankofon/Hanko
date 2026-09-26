@@ -5,6 +5,7 @@ import {usePathname} from 'next/navigation';
 
 /** One tab per phase. Tabs land as their phase does; the rest say so plainly. */
 export const TABS = [
+  {href: '/overview', label: 'Overview', phase: 7},
   {href: '/system', label: 'System', phase: 0},
   {href: '/pool', label: 'Pool', phase: 1},
   {href: '/identity', label: 'Identity', phase: 3},

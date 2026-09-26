@@ -33,6 +33,10 @@ import {PermissionedPoolWiring} from "../src/PermissionedPoolWiring.sol";
 import {EnsAllowlistChecker, IEnsRegistry} from "../src/EnsAllowlistChecker.sol";
 import {EnsFixture} from "./helpers/EnsFixture.sol";
 
+interface IClaims {
+    function balanceOf(address owner, uint256 id) external view returns (uint256);
+}
+
 interface IPermissionedPosm {
     function unwindPosition(uint256 tokenId, uint128 amount0Min, uint128 amount1Min, bytes calldata hookData)
         external;
@@ -593,9 +597,18 @@ contract PermissionedPoolForkTest is Test, EnsFixture {
         vm.stopPrank();
 
         uint256 usdcBefore = usdc.balanceOf(alice);
+        uint256 tnvdaBefore = token.balanceOf(alice);
 
         vm.prank(issuer);
         IPermissionedPosm(POSM).unwindPosition(tokenId, 0, 0, "");
+
+        emit log_named_uint("USDC delta ", usdc.balanceOf(alice) - usdcBefore);
+        emit log_named_uint("tNVDA delta", token.balanceOf(alice) - tnvdaBefore);
+        emit log_named_uint("tNVDA still held by posm", token.balanceOf(POSM));
+        uint256 claimId = uint256(uint160(address(adapter)));
+        emit log_named_uint("6909 claim held by alice ", IClaims(address(POOL_MANAGER)).balanceOf(alice, claimId));
+        emit log_named_uint("6909 claim held by issuer", IClaims(address(POOL_MANAGER)).balanceOf(issuer, claimId));
+        emit log_named_uint("6909 claim held by posm  ", IClaims(address(POOL_MANAGER)).balanceOf(POSM, claimId));
 
         assertGt(usdc.balanceOf(alice), usdcBefore, "a revoked LP was left stranded");
     }

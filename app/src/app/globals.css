@@ -29,10 +29,51 @@
   --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
 }
 
+/*
+ * Type scale. The app used to read like a debugging surface — everything 12px and the same
+ * weight. A venue console is read by people deciding whether to trust it, so the floor is 14px,
+ * body copy is 17px, and hierarchy comes from size and weight rather than colour alone.
+ */
+@utility text-body {
+  font-size: 1.0625rem;
+  line-height: 1.65;
+}
+
+@utility text-lead {
+  font-size: 1.375rem;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+}
+
+@utility text-display {
+  font-size: clamp(2rem, 4.5vw, 3.25rem);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  font-weight: 600;
+}
+
+@utility text-section {
+  font-size: 1.75rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+
+/* A quote is the page's main voice here; it should look like one. */
+@utility pull-quote {
+  font-size: 1.5rem;
+  line-height: 1.45;
+  letter-spacing: -0.015em;
+}
+
 html,
 body {
   background: var(--bg);
   color: var(--text);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
