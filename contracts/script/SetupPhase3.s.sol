@@ -150,6 +150,7 @@ contract SetupPhase3 is Script, HankoEnv {
         address tnvdaRegistry = deployRegistry(factory, impl, e.issuer, 1);
         address swapRegistry = deployRegistry(factory, impl, e.issuer, 2);
         address lpRegistry = deployRegistry(factory, impl, e.issuer, 3);
+        address agentIndex = deployRegistry(factory, impl, e.issuer, 4);
 
         if (IETHRegistrar(registrar).isAvailable(LABEL)) {
             registerName(registrar, ensUsdc, e.issuer);
@@ -171,14 +172,18 @@ contract SetupPhase3 is Script, HankoEnv {
         IUserRegistry(tnvdaRegistry).register(
             "lp", e.issuer, lpRegistry, address(0), OPERATOR_ROLES_WITH_ADMIN, type(uint64).max
         );
+        IUserRegistry(tnvdaRegistry).register(
+            "agents", e.issuer, agentIndex, address(0), OPERATOR_ROLES_WITH_ADMIN, type(uint64).max
+        );
 
         // Back-links, so a name can be resolved upwards as well as down.
         IUserRegistry(tnvdaRegistry).setParent(ethRegistry, LABEL);
         IUserRegistry(swapRegistry).setParent(tnvdaRegistry, "swap");
         IUserRegistry(lpRegistry).setParent(tnvdaRegistry, "lp");
+        IUserRegistry(agentIndex).setParent(tnvdaRegistry, "agents");
 
         EnsAllowlistChecker checker =
-            new EnsAllowlistChecker(IEnsRegistry(swapRegistry), IEnsRegistry(lpRegistry));
+            new EnsAllowlistChecker(IEnsRegistry(swapRegistry), IEnsRegistry(lpRegistry), IEnsRegistry(agentIndex));
 
         // Alice, and the issuer so it can keep seeding the pool. Role bitmap 0 is the point: no
         // transfer role means the permission cannot be sold on.
@@ -190,7 +195,7 @@ contract SetupPhase3 is Script, HankoEnv {
 
         vm.stopBroadcast();
 
-        record(tnvdaRegistry, swapRegistry, lpRegistry, address(checker));
+        record(tnvdaRegistry, swapRegistry, lpRegistry, agentIndex, address(checker));
     }
 
     function deployRegistry(address factory, address impl, address operator, uint256 salt)
@@ -244,18 +249,24 @@ contract SetupPhase3 is Script, HankoEnv {
         return vm.readFile(deploymentsPath()).readAddress(path);
     }
 
-    function record(address tnvdaRegistry, address swapRegistry, address lpRegistry, address checker)
-        internal
-    {
+    function record(
+        address tnvdaRegistry,
+        address swapRegistry,
+        address lpRegistry,
+        address agentIndex,
+        address checker
+    ) internal {
         string memory path = deploymentsPath();
         vm.writeJson(vm.toString(tnvdaRegistry), path, ".hanko.TnvdaRegistry");
         vm.writeJson(vm.toString(swapRegistry), path, ".hanko.SwapRegistry");
         vm.writeJson(vm.toString(lpRegistry), path, ".hanko.LpRegistry");
+        vm.writeJson(vm.toString(agentIndex), path, ".hanko.AgentIndex");
         vm.writeJson(vm.toString(checker), path, ".hanko.EnsAllowlistChecker");
 
         console.log("tnvda.eth registry  ", tnvdaRegistry);
         console.log("swap.tnvda.eth      ", swapRegistry);
         console.log("lp.tnvda.eth        ", lpRegistry);
+        console.log("agents.tnvda.eth    ", agentIndex);
         console.log("EnsAllowlistChecker ", checker);
     }
 }
