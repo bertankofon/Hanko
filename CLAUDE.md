@@ -24,8 +24,10 @@ Kullanıcı (Berti) deneyimli bir Solidity/EVM geliştiricisi. Amaç sadece çal
       son işlemin ne yaptığı, hangi kontratın hangi fonksiyonu çağrıldı, Etherscan linki.
    5. **Not:** `docs/LEARNINGS.md`'ye fazın özetini yaz: ne yaptık, neden, sürprizler,
       sürtünme noktaları, eksik dokümantasyon. (Bu dosya sonunda FEEDBACK.md ve World debrief'e dönüşecek.)
-   6. **Commit:** Küçük, anlamlı commit'ler (conventional commits). Tek dev commit YOK —
-      sponsorlar commit geçmişine bakıyor.
+   6. **Commit + push:** Küçük, anlamlı commit'ler (conventional commits). Tek dev commit YOK —
+      sponsorlar commit geçmişine bakıyor. **Her fazın sonunda `git push` at** (remote:
+      `bertankofon/Hanko`, public). Push öncesi `.env` türevlerinin ve RPC anahtarının
+      takip edilmediğini doğrula.
    7. **Dur:** Fazın "bitti kriterleri"ni ve kullanıcının UI'da deneyeceği test listesini yaz, sonra dur.
 3. **Tahmin etme, doğrula:** ABI'leri, adresleri ve fonksiyon imzalarını ezbere yazma.
    Resmi deployment dosyalarından veya kaynak koddan al (bkz. Bölüm 4). Emin değilsen söyle.

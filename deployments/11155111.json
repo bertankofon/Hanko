@@ -56,13 +56,14 @@
   "hanko": {
     "MockStockToken": "0x301b61f063fc6232D21cdFa5D97042910ee3994F",
     "SimpleAllowlistChecker": "0xc229c68F0C22301d3b332e0EAEfB3a93ebbe683D",
-    "EnsAllowlistChecker": null,
+    "EnsAllowlistChecker": "0x9d4f612f25f18FA6eAE1700c6e8Fb92aD35b7806",
     "HumanRegistrar": null,
     "PermissionsAdapter": "0x7060947614ECED6CA376A318C81dF6C088f00718",
-    "SwapRegistry": null,
-    "LpRegistry": null,
+    "SwapRegistry": "0xbB8A0C79945993eCf1ACd4177B896A75C2998dce",
+    "LpRegistry": "0xA35983B2b124e34AC65e77F4c854a3a356274A55",
     "deployBlock": 11785312,
-    "MockUSDC": "0xB30c9206F2747f122A3AB2924a537193eCB623fa"
+    "MockUSDC": "0xB30c9206F2747f122A3AB2924a537193eCB623fa",
+    "TnvdaRegistry": "0x2462d01326F42ccfDbcC6358e2c8B4fd157Ea7fC"
   },
   "pool": {
     "currency0": "0x7060947614ECED6CA376A318C81dF6C088f00718",
