@@ -124,3 +124,62 @@ fork provası, Sepolia deploy, ve `Pool` sekmesinin ilk hali.
 | SimpleAllowlistChecker | `0xc229c68F0C22301d3b332e0EAEfB3a93ebbe683D` |
 
 deployBlock 11785312 · deploy maliyeti ~0.0036 ETH
+
+## Faz 2 — Permissioned pool: adapter, havuz, likidite, swap
+
+**Ne yaptık.** Kendi MockUSDC'miz (6 decimals), PermissionsAdapter, tNVDA/USDC havuzu
+(fee 3000, tickSpacing 60, 200 USDC/tNVDA), Alice'in tam aralık pozisyonu, ve UI'dan gerçek
+swap. 16 fork testi + Sepolia deploy.
+
+**Fazın en değerli hamlesi:** kod yazmadan önce Uniswap'in kendi entegrasyon testlerini
+(`v4-periphery/test/hooks/permissionedPools/`) okumak. Kurulum sırasının yazılı olduğu tek yer
+orası ve iki kritik detay sadece orada:
+
+1. **Token allowlist'i beş protokol adresi istiyor**, sadece adapter değil: PoolManager,
+   PermissionedPositionManager, UniversalRouter, factory, hook. Eksik olsa her wrap bizim
+   `RecipientNotAllowed` hatamızla patlar ve sebep Uniswap tarafında aranırdı.
+2. **`depositForVerification(amount)`** diye özel bir fonksiyon var; düz transfer yerine bu
+   kullanılmalı (önce `approve`). Factory doğrulamadan önce bakiyeye bakıyor, fonksiyon ayrıca
+   filtrelenebilir `VerificationDeposit` event'i yayınlıyor.
+3. **PoolManager'ın kendisi de `allowedWrapper` olmalı** — CLAUDE.md'de yoktu.
+
+### Sürprizler
+
+- **Currency sıralaması adapter'ın adresine bağlı ve factory düz CREATE kullanıyor.** Upstream
+  testleri bunu adapter'ı doğru adres çıkana kadar döngüde yeniden yaratarak çözüyor; biz iki
+  sıralamayı da destekleyip `sqrtPriceX96`'yı gerektiğinde ters çevirmeyi tercih ettik. Ters
+  çevirmeyi unutmak 1e12 kat yanlış ama "çalışıyor gibi görünen" bir havuz veriyor — bu yüzden
+  test fiyatı tam sayı USDC olarak geri okuyor.
+- **Likidite eklerken permissioned tarafta permit2 kullanılmıyor:** LP underlying'i önce
+  position manager'a gönderiyor, sonra `SETTLE(currency, OPEN_DELTA, payerIsUser=false)` ile
+  posm kendi bakiyesinden ödüyor. Adapter token'ı hiçbir katılımcının cüzdanında duramadığı için
+  başka yolu yok.
+- **Swap tarafında permit2 gerekiyor:** router `_payPermissionedFromPayer` ile
+  `permit2.transferFrom` çağırıyor. İki onay zinciri: token→permit2, permit2→router.
+- **Router iç hatayı sarmalıyor.** Reddedilen swap `WrappedError(hook, beforeSwap.selector,
+  0x82b42900, …)` olarak geliyor; viem ABI'sini bilmediği selector'ü isimlendiremiyor. UI'daki
+  çözücü hatanın içindeki tüm hex bloklarını tarayıp bizim selector'lerimizi arıyor.
+- **PermissionedPositionManager'da Sepolia'daki ilk pozisyon bizimki** (`tokenId = 1`).
+
+### Test yazarken iki tuzak (Foundry)
+
+- `vm.expectRevert` **bir sonraki çağrıya** bağlanıyor. Fonlama transfer'i araya girerse test
+  yanlış sebeple geçer. Fonlamayı ayrı yardımcıya çıkardık.
+- `vm.prank` ile hedef çağrı arasına giren herhangi bir dış okuma prank'i tüketiyor. Plan'ı
+  `vm.prank`'ten önce hesaplamak gerekti.
+
+### Ölçüm
+
+`checkAllowlist` çağrısı: **warm 668 gas, cold 2.668 gas, ortalama 1.918**. Bir swap toplam
+~215.000 gas (UI'dan gerçek tx). Checker swap başına birkaç kez çağrılıyor (router ödeme,
+router çekme, hook), yani izin katmanının maliyeti kabaca **swap'ın %2-4'ü**. Faz 3'te ENS
+checker'ı ile aynı ölçüm tekrarlanacak; asıl kıyas o.
+
+### Sepolia adresleri (Faz 2)
+
+| | |
+|---|---|
+| PermissionsAdapter | `0x7060947614ECED6CA376A318C81dF6C088f00718` |
+| MockUSDC | `0xB30c9206F2747f122A3AB2924a537193eCB623fa` |
+| poolId | `0x7fa0ce83de5a3d08be5dcb359c65283ba15be677f30fb1d1b7640d4fc3aaf765` |
+| LP pozisyonu | tokenId 1, sahibi Alice |
