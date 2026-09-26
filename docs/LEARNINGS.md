@@ -68,3 +68,59 @@ kaynağını export ediyor, Next `transpilePackages` ile derliyor.
 
 31+ kontrolün tamamı geçti; `unknown` yok. Kalan kırmızılar yalnızca `.env`'de henüz
 doldurulmamış anahtarlar. `Hanko kontratları` kartı Faz 1'i bekliyor (`pending`).
+
+## Faz 1 — tNVDA ve SimpleAllowlistChecker
+
+**Ne yaptık.** `IAllowlistChecker`'ı en basit haliyle dolduran bir checker (owner'ın elle yazdığı
+mapping) ve aynı checker'a soran transfer kısıtlı bir ERC-20 (tNVDA). 23 Foundry testi, anvil
+fork provası, Sepolia deploy, ve `Pool` sekmesinin ilk hali.
+
+### Sürprizler
+
+1. **`BaseAllowlistChecker` zaten var.** v4-periphery `src/hooks/permissionedPools/` altında
+   ERC-165'i doğru kuran bir abstract kontrat duruyor; kendi ERC-165'imizi yazmaya gerek yoktu.
+   Dosya adı `BaseAllowListChecker.sol` ama kontrat adı `BaseAllowlistChecker` — küçük/büyük L
+   farkı, import ederken bir kez yaktı.
+
+2. **`PermissionFlag` sadece `|`, `&` ve `==` operatörlerini tanımlıyor; `!=` yok.**
+   `flags != NONE` derlenmiyor, `!(flags == NONE)` yazmak gerekiyor. Tip `bytes2`, `uint8` değil.
+
+3. **`require(cond, CustomError())` via-ir olmadan derlenmiyor** (solc 0.8.26).
+   `if (!cond) revert CustomError();` yazdık.
+
+4. **Anvil fork'u forklanan zincirin id'sini bildiriyor.** Deploy script'i ilk provada gerçek
+   Sepolia `deployments/11155111.json` dosyasının üzerine fork adreslerini yazdı. Yedekten geri
+   alındı; script'e `DEPLOYMENTS_SUFFIX` eklendi, fork çalıştırmaları `11155111-local.json`'a
+   yazıyor. **Genel ders:** fork ve gerçek ağ ayrımını chainId'ye bırakma.
+
+5. **Forge `.env`'i kendi proje kökünden okuyor.** Repo kökündeki `.env` görünmüyordu;
+   `contracts/.env -> ../.env` sembolik linki ile çözüldü.
+
+6. **Etherscan anahtarı reddedildi** (`invalid API key`) ve `--verify` preflight'ı deploy'u hiç
+   başlatmadan durdurdu — iyi ki, yarım deploy olmadı. Kontratlar doğrulamasız deploy edildi;
+   Etherscan V2 anahtarı gelince `forge verify-contract` ile sonradan doğrulanacak.
+
+7. **React server action'dan sonra formu sıfırlıyor.** `useActionState` + `action={formAction}`
+   kullanınca aktör seçimi her simülasyondan sonra varsayılana dönüyordu — sahnede kötü görünürdü.
+   Submit'i elle yönetip state'i tek kaynak yaptık.
+
+### Tasarım kararları
+
+- **Sadece alıcı kontrol ediliyor, gönderen değil.** Yetkisi düşen biri pozisyonunu hâlâ
+  dışarı gönderebilmeli; iptal varlıkları kilitlememeli. Faz 5'teki unwind buna dayanıyor.
+- **Mint de kontrolden geçiyor**, yani issuer yetkisiz birine yeni hisse basamıyor.
+- **Burn yolu yok**, dolayısıyla `_update`'te `to == address(0)` istisnası da yok. Eklenirse
+  istisna da eklenmeli — kod içinde not düşüldü.
+- **`systemAllowed`**: adapter gibi protokol adresleri katılımcı değil, kasa. Muafiyet olmasa
+  her wrap revert ederdi.
+- **UI'daki simülasyon** gerçek tx değil `eth_call`; anahtar ve gaz gerektirmeden aynı custom
+  error'ı döndürüyor. Gerçek tx'ler Faz 2'de router üzerinden.
+
+### Sepolia adresleri (Faz 1)
+
+| Kontrat | Adres |
+|---|---|
+| MockStockToken (tNVDA) | `0x301b61f063fc6232D21cdFa5D97042910ee3994F` |
+| SimpleAllowlistChecker | `0xc229c68F0C22301d3b332e0EAEfB3a93ebbe683D` |
+
+deployBlock 11785312 · deploy maliyeti ~0.0036 ETH
