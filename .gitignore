@@ -1,0 +1,22 @@
+# env
+.env
+.env.*
+!.env.example
+
+# node
+node_modules/
+.pnpm-store/
+
+# next
+.next/
+out/
+.vercel/
+
+# foundry
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+
+# misc
+.DS_Store
+*.log
