@@ -30,6 +30,8 @@ import {MockStockToken} from "../src/MockStockToken.sol";
 import {MockUSDC} from "../src/MockUSDC.sol";
 import {SimpleAllowlistChecker} from "../src/SimpleAllowlistChecker.sol";
 import {PermissionedPoolWiring} from "../src/PermissionedPoolWiring.sol";
+import {EnsAllowlistChecker, IEnsRegistry} from "../src/EnsAllowlistChecker.sol";
+import {EnsFixture} from "./helpers/EnsFixture.sol";
 
 /// @notice Stands the whole pool up against the *real* Uniswap contracts on Sepolia.
 ///
@@ -37,7 +39,7 @@ import {PermissionedPoolWiring} from "../src/PermissionedPoolWiring.sol";
 ///      permissions and was mined for that deployment — so a fork is the only way to test the
 ///      integration at all. Run with:
 ///        forge test --match-path "test/PermissionedPool.fork.t.sol" --fork-url sepolia
-contract PermissionedPoolForkTest is Test {
+contract PermissionedPoolForkTest is Test, EnsFixture {
     using StateLibrary for IPoolManager;
     using PoolIdLibrary for PoolKey;
 
@@ -78,6 +80,14 @@ contract PermissionedPoolForkTest is Test {
 
     function setUp() public {
         vm.createSelectFork(vm.envString("SEPOLIA_RPC_URL"));
+
+        // Some `makeAddr` labels have live code on Sepolia, which makes these stand-ins fail the
+        // ERC-1155 receiver check when they are granted an ENS name. Clear it after selecting the
+        // fork, or the fork restores it.
+        vm.etch(issuer, "");
+        vm.etch(alice, "");
+        vm.etch(stranger, "");
+        vm.etch(bot, "");
 
         vm.startPrank(issuer);
         checker = new SimpleAllowlistChecker(issuer);
@@ -404,6 +414,66 @@ contract PermissionedPoolForkTest is Test {
         vm.prank(bot);
         vm.expectRevert();
         IPositionManager(POSM).modifyLiquidities(plan, block.timestamp + 60);
+    }
+
+
+    // ---------------------------------------------------------------------------------------
+    // Phase 3: the same pool, reading ENS instead of a mapping
+    // ---------------------------------------------------------------------------------------
+
+    /// Swapping the venue's checker is one transaction on the adapter, and the pool keeps running.
+    /// This is the claim that a permissioned pool's access rules are pluggable — the mapping goes
+    /// out, ENS comes in, and no liquidity is moved and no pool is redeployed.
+    function test_poolKeepsWorkingAfterSwitchingToEns() public {
+        _mintPosition(alice, 500e18, 100_000e6);
+        _approveRouter(alice);
+
+        uint64 expiry = _switchToEns(2 hours);
+
+        // Alice holds a name under swap.tnvda.eth, so the pool lets her trade exactly as before.
+        _swapUsdcForTnvda(alice, 1_000e6);
+
+        // And the wallet with no name is refused, by ENS this time rather than by a mapping.
+        _approveRouter(stranger);
+        vm.expectRevert();
+        _swapUsdcForTnvda(stranger, 1_000e6);
+
+        assertGt(expiry, block.timestamp);
+    }
+
+    /// The property that a mapping cannot give for free: access ends by itself. Nobody revokes
+    /// anything here — the name simply lapses and the next swap is refused.
+    function test_accessLapsesWithoutAnyoneActing() public {
+        _mintPosition(alice, 500e18, 100_000e6);
+        _approveRouter(alice);
+
+        uint64 expiry = _switchToEns(2 hours);
+        _swapUsdcForTnvda(alice, 100e6); // fine while the name is live
+
+        vm.warp(expiry + 1);
+
+        vm.expectRevert();
+        _swapUsdcForTnvda(alice, 100e6);
+    }
+
+    /// @dev Builds the ENS tree, admits Alice, and points both the adapter and the token at the
+    ///      ENS-backed checker. Returns when Alice's names expire.
+    function _switchToEns(uint64 ttl) internal returns (uint64 expiry) {
+        vm.startPrank(issuer);
+        buildEnsTree(issuer, "hankopool");
+
+        EnsAllowlistChecker ensChecker =
+            new EnsAllowlistChecker(IEnsRegistry(swapRegistry), IEnsRegistry(lpRegistry));
+
+        expiry = uint64(block.timestamp) + ttl;
+        admit(swapRegistry, alice, expiry);
+        admit(lpRegistry, alice, expiry);
+
+        // The two must move together: the pool and the token have to read one allowlist, or a
+        // wallet the pool refuses could still take delivery of the underlying directly.
+        adapter.updateAllowListChecker(IAllowlistChecker(address(ensChecker)));
+        token.setChecker(IAllowlistChecker(address(ensChecker)));
+        vm.stopPrank();
     }
 
     /// @dev Turns a Q64.96 sqrt price into whole USDC per whole tNVDA, whichever side tNVDA is
