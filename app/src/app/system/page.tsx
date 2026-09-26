@@ -1,17 +1,25 @@
 import {privateKeyToAccount} from 'viem/accounts';
-import {runChecks, type CheckResult} from '@hanko/verify';
+import {
+  ACTOR_FUNDING_TARGETS,
+  LOW_BALANCE_FRACTION,
+  runChecks,
+  type CheckResult,
+} from '@hanko/verify';
 import {CheckCard} from '@/components/CheckTable';
 import {RefreshButton} from '@/components/RefreshButton';
 
 // Every load re-reads the chain; nothing here may come from a build-time cache.
 export const dynamic = 'force-dynamic';
 
+// The deployer pays for everything, so it gets its own floor; the rest are
+// checked against the targets fund-actors.ts tops them up to.
 const ACTOR_ENV = [
-  {name: 'Deployer / issuer', env: 'DEPLOYER_PRIVATE_KEY'},
-  {name: 'Attester', env: 'ATTESTER_PRIVATE_KEY'},
-  {name: 'Alice', env: 'ACTOR_ALICE_PK'},
-  {name: 'Stranger', env: 'ACTOR_STRANGER_PK'},
-  {name: 'Bot', env: 'ACTOR_BOT_PK'},
+  {name: 'Deployer / issuer', env: 'DEPLOYER_PRIVATE_KEY', minEth: 0.05},
+  ...ACTOR_FUNDING_TARGETS.map((t) => ({
+    name: t.name,
+    env: t.env,
+    minEth: Number(t.eth) * LOW_BALANCE_FRACTION,
+  })),
 ];
 
 const REQUIRED_ENV = [
@@ -26,12 +34,12 @@ const REQUIRED_ENV = [
 
 /** Derives the public address only. Private keys never leave this function. */
 function deriveActors() {
-  return ACTOR_ENV.flatMap(({name, env}) => {
+  return ACTOR_ENV.flatMap(({name, env, minEth}) => {
     const raw = process.env[env];
     if (!raw) return [];
     try {
       const key = (raw.startsWith('0x') ? raw : `0x${raw}`) as `0x${string}`;
-      return [{name, address: privateKeyToAccount(key).address}];
+      return [{name, address: privateKeyToAccount(key).address, minEth}];
     } catch {
       return [];
     }
