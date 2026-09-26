@@ -1,0 +1,66 @@
+{
+  "chainId": 11155111,
+  "name": "sepolia",
+  "note": "External addresses are pinned to the sources below. Hanko's own contracts are filled in by deploy scripts from Phase 1 onwards.",
+  "sources": {
+    "uniswap": {
+      "repo": "https://github.com/Uniswap/contracts",
+      "file": "deployments/json/11155111.json",
+      "section": "latest",
+      "commit": "047d585"
+    },
+    "uniswapPeriphery": {
+      "repo": "https://github.com/Uniswap/v4-periphery",
+      "path": "src/hooks/permissionedPools/",
+      "commit": "9969eec44cfdf07e24b41de47f40276a58401976"
+    },
+    "uniswapHooks": {
+      "repo": "https://github.com/Uniswap/v4-hooks-public",
+      "path": "src/permissioned-pools/PermissionedHooks.sol",
+      "note": "PermissionedHooks lives here, not in v4-periphery (moved out in v4-periphery 15daba8b)."
+    },
+    "universalRouter": {
+      "repo": "https://github.com/Uniswap/universal-router",
+      "deployedCommit": "e34ba78",
+      "readCommit": "543e1a1",
+      "note": "Commit e34ba78 from the deployment JSON is not reachable in the public clone; signatures were read at 543e1a1."
+    },
+    "ens": {
+      "repo": "https://github.com/ensdomains/contracts-v2",
+      "path": "contracts/deployments/sepolia/",
+      "commit": "366de741187e38686c904242753c532b7de70d47",
+      "deployedAt": "2026-09-15T09:46:38.513Z"
+    }
+  },
+  "uniswap": {
+    "PoolManager": "0xE03A1074c86CFeDd5C142C4F04F1a1536e203543",
+    "PermissionsAdapterFactory": "0xe6b0d96919334c33d06266d1420f97f6f434fa2b",
+    "PermissionedHooks": "0x51247e2291d290d17c08813a175ac86465ede8c0",
+    "PermissionedPositionManager": "0x864c37908aa5e10b100cacee1c62e3954d76f5e1",
+    "UniversalRouterV22": "0x5093f1cded83d99ffed6602da6260672ae16787c",
+    "_wrongUniversalRouterV212": "0x7E4f6c5e954Da5c61B3423D81E2277431Ac043f3"
+  },
+  "ens": {
+    "RootRegistry": "0x9703dbd26dab89504490994138cf2c575251a9ce",
+    "ETHRegistry": "0x657ea849311d3d5823348dded7c2aaafb3ede09e",
+    "ETHRegistrar": "0xabe76f6c8dfced81aa5a2bb8034202a7136b94ca",
+    "VerifiableFactory": "0x9e726eb570beb6bceb495ab8cda7df517d4e841c",
+    "UserRegistryImpl": "0xa80338aaa8d23831cea25e858d1774534abb0263",
+    "PermissionedResolverImpl": "0x14f09fd05d4585759e54844dc9b00147131cf243",
+    "UniversalResolverV2": "0x5d25c1d6acbb71b7a28aa7899618a3412a8303e3",
+    "ManagedUniversalResolverProxy": "0x6d80F2172CFdEc5730fE683860C33d26fC42e6F1",
+    "UniversalHelper": "0x33f571aa8a160a21b877cf6e0fb8806692b97df5",
+    "MockUSDC": "0x16f95d91dba7da3aca778ec053df0ff6c6a8aa8e",
+    "UniversalResolverProxy": "0xeEeEEEeE14D718C2B47D9923Deab1335E144EeEe"
+  },
+  "hanko": {
+    "MockStockToken": null,
+    "SimpleAllowlistChecker": null,
+    "EnsAllowlistChecker": null,
+    "HumanRegistrar": null,
+    "PermissionsAdapter": null,
+    "SwapRegistry": null,
+    "LpRegistry": null,
+    "deployBlock": null
+  }
+}

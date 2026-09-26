@@ -1,0 +1,22 @@
+{
+  "name": "@hanko/verify",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "lib/checks.ts",
+  "exports": {
+    ".": "./lib/checks.ts"
+  },
+  "scripts": {
+    "verify": "tsx verify-env.ts"
+  },
+  "dependencies": {
+    "viem": "^2.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.3",
+    "dotenv": "^16.4.5",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

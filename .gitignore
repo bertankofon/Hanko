@@ -20,3 +20,6 @@ contracts/broadcast/
 # misc
 .DS_Store
 *.log
+
+# verification run output (regenerate with `pnpm verify`)
+deployments/verification-*.json

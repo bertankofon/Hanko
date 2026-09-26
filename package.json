@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "description": "ENSv2-backed access control for Uniswap v4 permissioned pools (ETHGlobal Tokyo 2026)",
   "scripts": {
-    "verify": "pnpm --filter @hanko/scripts verify",
+    "verify": "pnpm --filter @hanko/verify verify",
     "dev": "pnpm --filter @hanko/app dev",
     "build": "pnpm --filter @hanko/app build",
     "test:contracts": "cd contracts && forge test"
