@@ -35,18 +35,17 @@ contract AdmitMembers is Script, HankoEnv {
 
     /// @dev How long a member's permission lasts, overridable with `MEMBER_TTL_SECONDS`.
     ///
-    ///      Two hours by default because the demo's strongest moment is a permission lapsing with
-    ///      nobody acting, and nobody will wait a year to watch it.
+    ///      Thirty days is a demo-safe default: long enough that nobody has to re-admit anyone
+    ///      before a presentation, short enough to still be a real expiry rather than a pretend
+    ///      one.
     ///
-    ///      This is a placeholder for the real answer. A venue should not pick this number at all:
-    ///      it belongs to whatever credential admitted the member, so a passport-backed permission
-    ///      should end when the passport does and a KYC-backed one on that provider's refresh
-    ///      cycle. Phase 4's credential provider returns an expiry alongside the proof, and this
-    ///      constant goes away when the attester starts using it.
+    ///      The number is a placeholder either way. A venue should not pick it: it belongs to
+    ///      whatever credential admitted the member, so a passport-backed permission ends when the
+    ///      passport does and a KYC-backed one on that provider's refresh cycle.
     ///
-    ///      Note this has nothing to do with the five years in the SEC order — that is when the
-    ///      exemption itself sunsets, not how long a participant stays cleared.
-    uint64 internal constant DEFAULT_MEMBER_TTL = 2 hours;
+    ///      Nothing to do with the five years in the SEC order — that is when the exemption itself
+    ///      sunsets, not how long a participant stays cleared.
+    uint64 internal constant DEFAULT_MEMBER_TTL = 30 days;
 
     function memberTtl() internal view returns (uint64) {
         return uint64(vm.envOr("MEMBER_TTL_SECONDS", uint256(DEFAULT_MEMBER_TTL)));

@@ -11,10 +11,26 @@ Her fazın sonunda kullanıcı UI'da test eder ve onay verir, sonra bir sonraki 
 | 1 | tNVDA token + SimpleChecker | ZORUNLU | 1 sa |
 | 2 | Permissioned Pool: likidite + swap (izinli/izinsiz) | ZORUNLU (en riskli) | 3-4 sa |
 | 3 | ENSv2 registry'ler + EnsAllowlistChecker + checker değişimi | ZORUNLU | 2-3 sa |
-| 4 | Credential provider (World ID) + HumanRegistrar | ZORUNLU (sade tut) | 2-2.5 sa |
-| 5 | Issuer konsolu (iptal, unwind, pause) + Audit log | ZORUNLU (min. iptal + audit) | 2 sa |
 | 6 | Agent delegasyonu (ENS hiyerarşisi) | **ZORUNLU — projenin ENS kalbi** | 2-3 sa |
+| 5 | Issuer konsolu (iptal, unwind, pause) + Audit log | ZORUNLU (min. iptal + audit) | 2 sa |
 | 7 | Demo modu, deploy, README, FEEDBACK, uniswap-ai PR, video | ZORUNLU | 2-3 sa |
+| 4 | Credential provider (World ID) + HumanRegistrar | **ERTELENDİ — en sona** | 2-2.5 sa |
+
+**Sıra değişikliği (2026-09-27 kararı).** Uniswap + ENS işini bitirip World'ü en sona bıraktık.
+Gerekçe: iki ana ödül ENS ve Uniswap; World ikincil ve tek dış bağımlılık orada (Developer Portal,
+staging'in passport desteği, `world-llm-prompt.md` henüz boş). Yeni sıra: **6 → 5 → 7 → 4**.
+
+**Faz 6 artık Faz 4'e bağlı değil.** CLAUDE.md agent'ın parent bağını `HumanRegistrar` içinde
+tutmayı öneriyordu; bunun yerine **hiyerarşinin kendisi** parent bağı olacak
+(`bot.<insan-label>.swap.tnvda.eth`). İnsanın ismi düşünce alt registry'si erişilemez hale gelir,
+bot da otomatik düşer — kendi kontratımızda bir mapping tutmadan. Bu hem ENS ödülü için daha güçlü
+hem de bağımlılığı kaldırıyor. **Faz 6'da doğrulanacak ilk şey:** süresi dolmuş/iptal edilmiş bir
+isimde `getSubregistry` gerçekten `address(0)` dönüyor mu (kaynaktan teyit et, varsayma).
+
+**World ertelenmesinin bedeli (dürüst ol, sunumda fazlasını iddia etme):** sybil direnci
+("bir pasaport = bir cüzdan") ve yetki ayrılığı ("backend ekler, silemez") World gelene kadar
+YOK. `ROLE_REGISTRAR` hâlâ issuer'da. Faz 4 yapılamazsa README'de "provider arayüzü tasarlandı,
+implementasyon roadmap'te" denir — yarım yamalak bir QR akışından iyidir.
 
 **Çekirdek hatırlatma:** Ana hedef ENS + Uniswap. World ikincil: çalışan doğrulama + başarısız yol
 + debrief yeterli, cilaya zaman harcama. Zaman kazanmak gerekirse Faz 4'ü kıs, Faz 6'yı değil.
@@ -267,8 +283,10 @@ bot swap yapabilir, LP olamaz; insanın kimliği iptal edilince bot da düşer.
    3. Stranger swap dener → ❌ (sebep ekranda)
    4. Aynı pasaportla ikinci cüzdan → ❌ (bir belge = bir mühür)
    5. Alice bot'a yetki verir → bot swap ✅, bot LP ❌
-   6. Venue operator Alice'i iptal eder → Alice ❌, bot ❌; unwind → USDC geri döner; köşede 2 dk'lık test
-      kimliğinin süresi dolar → ❌
+   6. Venue operator Alice'i iptal eder → Alice ❌, bot ❌; unwind → USDC geri döner
+      (Süre dolumu ayrı bir demo adımı DEĞİL: sahnede zamana bağımlı olurdu ve ekranda iptalle
+      birebir aynı görünürdü. Identity sekmesindeki geri sayım sütunu zaten görünür; sorulursa
+      tek cümleyle değinilir.)
    7. **Trading Halt:** "Nasdaq NVDA'da işlemi durdurdu" → operator halt'a basar → herkesin swap'ı ❌ →
       Resume → ✅ (SEC şartı: dayanak durursa venue de durur)
    8. Audit log: "her yetki, iptal ve halt onchain'de — kamuya bildirim şartının kaynağı"
