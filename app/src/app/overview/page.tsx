@@ -1,13 +1,11 @@
 import Link from 'next/link';
-import {Conditions} from '@/components/overview/Conditions';
-import {Quote} from '@/components/overview/Quote';
-import {Section} from '@/components/overview/Section';
-import {StackCard} from '@/components/overview/StackCard';
+import {FlowDiagram} from '@/components/overview/FlowDiagram';
+import {Reveal} from '@/components/overview/Reveal';
 
 export const metadata = {
   title: 'Overview — Hanko',
   description:
-    'Why Hanko exists: the SEC’s Innovation Exemption gave tokenized securities venues two jobs, and Hanko is the on-chain layer for the second one.',
+    'The SEC gave tokenized securities venues two jobs. Uniswap solved the first. Hanko is the second: who may trade, held in ENS, enforced on every swap.',
 };
 
 const PRESS_RELEASE =
@@ -15,250 +13,220 @@ const PRESS_RELEASE =
 const HARVARD =
   'https://corpgov.law.harvard.edu/2026/09/25/sec-issues-innovation-exemption-for-tokenized-securities/';
 
-const AUDIENCE = [
-  {
-    who: 'Venue operators',
-    what: 'Run a permissioned pool without writing an access-control system, and hold a halt switch that maps to the condition it answers.',
-  },
-  {
-    who: 'Investors',
-    what: 'Hold a permission you can see, that nobody can transfer away from you, and that you can delegate on your own terms.',
-  },
-  {
-    who: 'Trading agents',
-    what: 'Trade for a cleared investor under their clearance, scoped to swaps only, and stop the moment theirs does.',
-  },
-  {
-    who: 'Auditors and regulators',
-    what: 'Read every grant, revocation and halt from the chain and from ENS, without asking the venue for its logs.',
-  },
-];
-
-const CLAIMS = [
-  {
-    bold: 'A rule in code, not in a terms-of-service page.',
-    rest: 'Today most tokenized-security restrictions live in a document. Here the pool asks on every swap and every deposit of liquidity.',
-  },
-  {
-    bold: 'Permissions that end by themselves.',
-    rest: 'A name lapses and access goes with it. No sweep to run, no stale row left behind in a mapping.',
-  },
-  {
-    bold: 'Delegation with a leash.',
-    rest: 'An investor can hand a bot the right to trade and not the right to commit capital — and revoking the investor revokes the bot in the same transaction.',
-  },
-  {
-    bold: 'Management that leaves a trail.',
-    rest: 'Every decision is an on-chain event. The audit record is not a feature we added; it is what the system is made of.',
-  },
-];
+const band = 'border-t border-line py-20 sm:py-28';
+const eyebrow = 'mb-6 text-sm font-medium uppercase tracking-[0.2em] text-seal';
+const primaryButton =
+  'rounded-xl border border-seal bg-seal/10 px-6 py-3 text-body font-medium text-seal transition-colors hover:bg-seal/20';
+const ghostButton =
+  'rounded-xl border border-line px-6 py-3 text-body transition-colors hover:bg-panel';
 
 export default function OverviewPage() {
   return (
     <div className="mx-auto max-w-4xl">
-      {/* Hero */}
-      <header className="py-12 sm:py-20">
-        <p className="mb-5 text-sm font-medium uppercase tracking-[0.18em] text-seal">
-          判 · Hanko
-        </p>
-        <h1 className="text-display text-balance">
-          A regulated venue needs to know who may trade. Hanko makes that answer an ENS name.
-        </h1>
-        <p className="text-lead mt-7 max-w-2xl text-muted">
-          Expiring, non-transferable, delegatable permissions for a Uniswap v4 permissioned pool —
-          enforced on every swap, readable by anyone.
-        </p>
+      <header className="py-16 sm:py-28">
+        <Reveal>
+          <p className={eyebrow}>判 · Hanko</p>
+          <h1 className="text-display text-balance">
+            Who may trade here — as an ENS name the pool reads on every swap.
+          </h1>
+        </Reveal>
 
-        <div className="mt-9 flex flex-wrap gap-3">
-          <Link
-            href="/pool"
-            className="rounded-xl border border-seal bg-seal/10 px-5 py-2.5 text-body text-seal hover:bg-seal/20"
-          >
-            Open the venue
-          </Link>
-          <Link
-            href="/identity"
-            className="rounded-xl border border-line px-5 py-2.5 text-body hover:bg-panel"
-          >
-            See the permissions
-          </Link>
-        </div>
+        <Reveal delay={120}>
+          <div className="mt-10 flex flex-wrap gap-3">
+            <Link href="/pool" className={primaryButton}>
+              Open the venue
+            </Link>
+            <Link href="/identity" className={ghostButton}>
+              See the permissions
+            </Link>
+          </div>
+        </Reveal>
       </header>
 
-      {/* The order */}
-      <Section eyebrow="17 September 2026" title="The SEC opened a door, and left a question behind it.">
-        <Quote source="SEC press release 2026-90" href={PRESS_RELEASE}>
-          TSVs bring together buyers and sellers of tokenized NMS stock by: (1) providing one or more
-          AMM Liquidity Pool(s) for permissioned participants to interact and agree to terms of a
-          trade and (2){' '}
-          <span className="text-seal">setting standards for persons to access trading</span> on such
-          AMM Liquidity Pool(s).
-        </Quote>
+      {/* One sentence from the order. Everything else follows from it. */}
+      <section className={band}>
+        <Reveal>
+          <p className={eyebrow}>SEC · 17 September 2026</p>
+        </Reveal>
 
-        <div className="mt-10 grid gap-5 sm:grid-cols-2">
-          <div className="rounded-2xl border border-line bg-panel p-6">
-            <p className="text-lead">Uniswap solved the first job.</p>
-            <p className="text-body mt-2 text-muted">
-              Permissioned pools ship as part of v4: the pool, the adapter, the hook.
-            </p>
-          </div>
-          <div className="rounded-2xl border border-seal/40 bg-seal/5 p-6">
-            <p className="text-lead">Hanko is the second one.</p>
-            <p className="text-body mt-2 text-muted">
-              Who may access trading, for how long, with what scope — held in ENS and read by the
-              pool.
-            </p>
-          </div>
-        </div>
+        <Reveal delay={100}>
+          <blockquote className="text-display text-balance font-normal">
+            <span className="text-muted">A venue provides the pools, and</span>{' '}
+            <span className="text-ink">sets standards for persons to access trading.</span>
+          </blockquote>
+        </Reveal>
 
-        <div className="mt-10 overflow-hidden rounded-2xl border border-line bg-black">
-          <div className="relative aspect-video">
-            <iframe
-              className="absolute inset-0 size-full"
-              src="https://www.youtube.com/embed/prnA6M4rSUM"
-              title="SEC Issues “Innovation Exemption”"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-        </div>
-        <p className="mt-3 text-sm text-muted">
-          Chairman Paul S. Atkins on the Innovation Exemption · published by the U.S. Securities and
-          Exchange Commission.{' '}
-          <a className="underline underline-offset-4 hover:text-ink" href={HARVARD} target="_blank" rel="noreferrer">
-            A law-firm summary of the order ↗
+        <Reveal delay={200}>
+          <a
+            href={PRESS_RELEASE}
+            target="_blank"
+            rel="noreferrer"
+            className="text-body mt-7 inline-block text-muted underline underline-offset-4 hover:text-ink"
+          >
+            Press release 2026-90 ↗
           </a>
-        </p>
-      </Section>
+        </Reveal>
 
-      {/* Conditions */}
-      <Section
-        eyebrow="The conditions"
-        title="Six conditions come with the exemption. Hanko answers three of them, and says so about the rest."
-      >
-        <Conditions />
-        <p className="text-body mt-6 text-muted">
-          Conditions quoted from the press release. The five-year figure in the order is when the{' '}
-          <span className="font-semibold text-ink">exemption itself sunsets</span> — it says nothing
-          about how long a participant stays cleared.
-        </p>
-      </Section>
-
-      {/* The stack */}
-      <Section eyebrow="Built on" title="Two pieces of infrastructure, each doing what it is already good at.">
-        <div className="grid gap-5 md:grid-cols-2">
-          <StackCard
-            logo="/brand/uniswap-logo-white.svg"
-            alt="Uniswap"
-            logoWidth={160}
-            href="https://docs.uniswap.org/"
-            what="The venue itself."
-            why="A permissioned pool is a v4 feature, not a fork. The hook rejects a swap before it happens, so the rule runs inside the AMM rather than beside it."
-            points={[
-              {bold: 'Permissioned pools.', rest: 'Adapter, hook and position manager, used as shipped.'},
-              {bold: 'One interface.', rest: 'Hanko implements IAllowlistChecker; the pool asks it on every swap.'},
-              {bold: 'Nothing forked.', rest: 'Liquidity and audits stay where they are.'},
-            ]}
-          />
-          <StackCard
-            logo="/brand/ens-logo-White.svg"
-            alt="ENS"
-            logoWidth={140}
-            href="https://ens.domains/"
-            what="Where the permission lives."
-            why="A name already expires, already refuses to be transferred, and already nests. Writing those three properties into a mapping means writing them from scratch — and nobody else can read them."
-            points={[
-              {bold: 'It ends by itself.', rest: 'An expired name resolves to nobody.'},
-              {bold: 'It cannot be sold on.', rest: 'Granted with no transfer role.'},
-              {bold: 'It nests.', rest: 'An agent’s name lives inside its principal’s registry, so it dies with theirs.'},
-            ]}
-          />
-        </div>
-        <p className="mt-5 text-sm text-muted">
-          Uniswap and ENS are trademarks of their respective owners. Logos are their official brand
-          assets, used here to indicate what this project integrates with.
-        </p>
-      </Section>
-
-      {/* Claims */}
-      <Section eyebrow="What it changes" title="Four things that are true here and usually are not.">
-        <ul className="grid gap-5 sm:grid-cols-2">
-          {CLAIMS.map((c) => (
-            <li key={c.bold} className="rounded-2xl border border-line bg-panel p-6">
-              <p className="text-body">
-                <span className="font-semibold text-ink">{c.bold}</span>
-              </p>
-              <p className="text-body mt-2 text-muted">{c.rest}</p>
-            </li>
-          ))}
-        </ul>
-      </Section>
-
-      {/* Audience */}
-      <Section eyebrow="Who it is for" title="Four people look at this system, and each needs a different thing from it.">
-        <div className="grid gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-2">
-          {AUDIENCE.map((a) => (
-            <div key={a.who} className="bg-panel p-6">
-              <p className="text-lead">{a.who}</p>
-              <p className="text-body mt-2 text-muted">{a.what}</p>
+        <div className="mt-14 grid gap-4 sm:grid-cols-2">
+          <Reveal delay={120}>
+            <div className="h-full rounded-2xl border border-line bg-panel p-7">
+              {/* eslint-disable-next-line @next/next/no-img-element -- fixed-size brand SVG */}
+              <img src="/brand/uniswap-logo-white.svg" alt="Uniswap" className="h-7 w-auto" />
+              <p className="text-lead mt-6">Solved the pools.</p>
             </div>
+          </Reveal>
+
+          <Reveal delay={240}>
+            <div className="h-full rounded-2xl border border-seal/50 bg-seal/5 p-7">
+              <p className="text-lg font-semibold">判 Hanko</p>
+              <p className="text-lead mt-6">Solves the standards.</p>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* The mechanism, animated. */}
+      <section className={band}>
+        <Reveal>
+          <p className={eyebrow}>Every swap</p>
+          <h2 className="text-section text-balance">The rule runs inside the trade.</h2>
+        </Reveal>
+
+        <Reveal delay={140} className="mt-10">
+          <FlowDiagram />
+        </Reveal>
+      </section>
+
+      {/* ENS, stated as three properties rather than described. */}
+      <section className={band}>
+        <Reveal>
+          <p className={eyebrow}>Why a name</p>
+          {/* eslint-disable-next-line @next/next/no-img-element -- fixed-size brand SVG */}
+          <img src="/brand/ens-logo-White.svg" alt="ENS" className="mb-8 h-9 w-auto" />
+        </Reveal>
+
+        <div className="grid gap-4 sm:grid-cols-3">
+          {[
+            {title: 'It expires.', line: 'Nobody has to remember to revoke it.'},
+            {title: 'It cannot be sold.', line: 'Granted with no transfer right.'},
+            {title: 'It nests.', line: 'A bot’s name dies with its owner’s.'},
+          ].map((p, i) => (
+            <Reveal key={p.title} delay={i * 130}>
+              <div className="h-full rounded-2xl border border-line bg-panel p-7">
+                <p className="text-lead font-semibold">{p.title}</p>
+                <p className="text-body mt-3 text-muted">{p.line}</p>
+              </div>
+            </Reveal>
           ))}
         </div>
-      </Section>
 
-      {/* Honesty */}
-      <Section eyebrow="What this is not" title="The claims we are not making.">
-        <ul className="space-y-4">
-          <li className="text-body">
-            <span className="font-semibold text-ink">It is not KYC.</span>{' '}
-            <span className="text-muted">
-              KYC answers who someone is. Hanko governs who may trade, for how long, with what scope —
-              and takes the answer to the first question from whatever credential provider the venue
-              chooses.
-            </span>
-          </li>
-          <li className="text-body">
-            <span className="font-semibold text-ink">It does not restrict DeFi.</span>{' '}
-            <span className="text-muted">
-              Permissionless pools are untouched. This exists so that regulated venues can use the
-              same infrastructure — the order itself says it is not about decentralised finance.
-            </span>
-          </li>
-          <li className="text-body">
-            <span className="font-semibold text-ink">It does not hold anyone’s money.</span>{' '}
-            <span className="text-muted">
-              A delegated agent trades from its own wallet. The permission admits it to the venue; it
-              gives no access to the investor’s funds.
-            </span>
-          </li>
-          <li className="text-body">
-            <span className="font-semibold text-ink">It is a demo on a testnet.</span>{' '}
-            <span className="text-muted">
-              tNVDA is a mock asset, the price is a round number chosen for the demo, and the actors
-              are signed server-side so nobody has to switch wallets on stage.
-            </span>
-          </li>
-        </ul>
-      </Section>
+        <Reveal delay={420}>
+          <p className="text-lead mt-10 text-balance text-muted">
+            <span className="text-ink">A mapping gives you none of these.</span> You write all three
+            yourself, and nobody outside your contract can read them.
+          </p>
+        </Reveal>
+      </section>
 
-      <footer className="border-t border-line py-14">
-        <p className="text-lead text-balance">
-          Everything on the following pages is read from Sepolia as you load it.
-        </p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link
-            href="/pool"
-            className="rounded-xl border border-seal bg-seal/10 px-5 py-2.5 text-body text-seal hover:bg-seal/20"
-          >
-            Open the venue
-          </Link>
-          <Link
-            href="/audit"
-            className="rounded-xl border border-line px-5 py-2.5 text-body hover:bg-panel"
-          >
-            Read the record
-          </Link>
+      {/* The order's conditions, as ticks rather than prose. */}
+      <section className={band}>
+        <Reveal>
+          <p className={eyebrow}>The conditions</p>
+          <h2 className="text-section text-balance">Three of the six are access rules. Those are ours.</h2>
+        </Reveal>
+
+        <div className="mt-10 space-y-3">
+          {[
+            'Contracts auditable, public, on a permissionless ledger',
+            'Trading stops when the underlying stops',
+            'Public notice of operations and trading activity',
+          ].map((c, i) => (
+            <Reveal key={c} delay={i * 120}>
+              <div className="flex items-center gap-4 rounded-xl border border-line bg-panel px-6 py-5">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-pass/40 bg-pass/10 text-pass">
+                  ✓
+                </span>
+                <p className="text-lead">{c}</p>
+              </div>
+            </Reveal>
+          ))}
         </div>
+
+        <Reveal delay={400}>
+          <p className="text-body mt-6 text-muted">
+            The other three — symbol limits, token rights, issuer notice —{' '}
+            <span className="text-ink">are not access control, and we do not claim them.</span>{' '}
+            <a
+              className="underline underline-offset-4 hover:text-ink"
+              href={HARVARD}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Summary of the order ↗
+            </a>
+          </p>
+        </Reveal>
+      </section>
+
+      {/* The SEC's own video, as they published it. */}
+      <section className={band}>
+        <Reveal>
+          <div className="overflow-hidden rounded-2xl border border-line bg-black">
+            <div className="relative aspect-video">
+              <iframe
+                className="absolute inset-0 size-full"
+                src="https://www.youtube.com/embed/prnA6M4rSUM"
+                title="SEC Issues “Innovation Exemption”"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </div>
+          <p className="mt-4 text-sm text-muted">
+            Chairman Paul S. Atkins · U.S. Securities and Exchange Commission
+          </p>
+        </Reveal>
+      </section>
+
+      {/* Honesty, as four lines. */}
+      <section className={band}>
+        <Reveal>
+          <p className={eyebrow}>Not claimed</p>
+        </Reveal>
+
+        <div className="space-y-5">
+          {[
+            ['Not KYC.', 'That answers who you are. This answers who may trade.'],
+            ['Not a restriction on DeFi.', 'Permissionless pools are untouched.'],
+            ['Not custody.', 'A delegated bot trades its own wallet, never yours.'],
+            ['A testnet demo.', 'Mock asset, round-number price, server-signed actors.'],
+          ].map(([bold, rest], i) => (
+            <Reveal key={bold} delay={i * 110}>
+              <p className="text-lead text-balance">
+                <span className="font-semibold text-ink">{bold}</span>{' '}
+                <span className="text-muted">{rest}</span>
+              </p>
+            </Reveal>
+          ))}
+        </div>
+      </section>
+
+      <footer className="border-t border-line py-20">
+        <Reveal>
+          <p className="text-section text-balance">Everything else on this site is read from Sepolia.</p>
+          <div className="mt-9 flex flex-wrap gap-3">
+            <Link href="/pool" className={primaryButton}>
+              Open the venue
+            </Link>
+            <Link href="/audit" className={ghostButton}>
+              Read the record
+            </Link>
+          </div>
+          <p className="mt-10 text-sm text-muted">
+            Uniswap and ENS are trademarks of their respective owners; logos are their official
+            brand assets, used to indicate what this project integrates with.
+          </p>
+        </Reveal>
       </footer>
     </div>
   );
