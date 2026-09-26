@@ -14,7 +14,13 @@ import {dirname, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {config as loadEnv} from 'dotenv';
 import {privateKeyToAccount} from 'viem/accounts';
-import {runChecks, type CheckResult, type CheckStatus} from './lib/checks';
+import {
+  ACTOR_FUNDING_TARGETS,
+  LOW_BALANCE_FRACTION,
+  runChecks,
+  type CheckResult,
+  type CheckStatus,
+} from './lib/checks';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, '..');
@@ -44,20 +50,23 @@ function deriveAddress(envName: string): string | null {
   }
 }
 
-const actorEnv: {name: string; env: string}[] = [
-  {name: 'Deployer / issuer', env: 'DEPLOYER_PRIVATE_KEY'},
-  {name: 'Attester', env: 'ATTESTER_PRIVATE_KEY'},
-  {name: 'Alice', env: 'ACTOR_ALICE_PK'},
-  {name: 'Stranger', env: 'ACTOR_STRANGER_PK'},
-  {name: 'Bot', env: 'ACTOR_BOT_PK'},
+// The deployer pays for everything, so it gets its own floor; the rest are
+// checked against the targets fund-actors.ts tops them up to.
+const actorEnv = [
+  {name: 'Deployer / issuer', env: 'DEPLOYER_PRIVATE_KEY', minEth: 0.05},
+  ...ACTOR_FUNDING_TARGETS.map((t) => ({
+    name: t.name,
+    env: t.env,
+    minEth: Number(t.eth) * LOW_BALANCE_FRACTION,
+  })),
 ];
 
 const actors = actorEnv
-  .map(({name, env}) => {
+  .map(({name, env, minEth}) => {
     const address = deriveAddress(env);
-    return address ? {name, address} : null;
+    return address ? {name, address, minEth} : null;
   })
-  .filter((a): a is {name: string; address: string} => a !== null);
+  .filter((a): a is {name: string; address: string; minEth: number} => a !== null);
 
 const requiredEnv = [
   'SEPOLIA_RPC_URL',

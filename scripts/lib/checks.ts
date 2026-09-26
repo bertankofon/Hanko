@@ -64,6 +64,26 @@ export interface VerificationReport {
 
 export const d = deployments;
 
+/**
+ * How much Sepolia ETH each non-deployer wallet should hold, keyed by its .env
+ * name. One table drives both `fund-actors.ts` (which tops wallets up to the
+ * target) and the balance check below (which warns at half the target), so the
+ * two can never disagree about what "funded" means.
+ *
+ * Sizing: Sepolia gas was ~1.1 gwei when these were set, putting a swap at
+ * ~0.0003 ETH and the whole Phase 2 pool setup at ~0.009 ETH. These are ~10x
+ * that, so a gas spike cannot strand an actor mid-demo.
+ */
+export const ACTOR_FUNDING_TARGETS: {name: string; env: string; eth: string}[] = [
+  {name: 'Attester', env: 'ATTESTER_PRIVATE_KEY', eth: '0.02'},
+  {name: 'Alice', env: 'ACTOR_ALICE_PK', eth: '0.03'},
+  {name: 'Stranger', env: 'ACTOR_STRANGER_PK', eth: '0.01'},
+  {name: 'Bot', env: 'ACTOR_BOT_PK', eth: '0.01'},
+];
+
+/** A wallet is flagged once it drops below this fraction of its target. */
+export const LOW_BALANCE_FRACTION = 0.5;
+
 /** Hooks.ALL_HOOK_MASK — v4-core @ src/libraries/Hooks.sol:26 */
 const ALL_HOOK_MASK = (1n << 14n) - 1n;
 /**
@@ -129,15 +149,15 @@ export const knownAddresses: {group: CheckGroup; name: string; address: string}[
 export interface RunOptions {
   rpcUrl: string;
   /** Derived actor addresses (never private keys). */
-  actors?: {name: string; address: string}[];
+  actors?: {name: string; address: string; minEth?: number}[];
   /** Env var names that must be present; values are never read into results. */
   requiredEnv?: {name: string; present: boolean}[];
-  /** Minimum Sepolia balance we want each actor to hold, in ether. */
+  /** Fallback minimum, used only for actors with no target of their own. */
   minBalanceEth?: number;
 }
 
 export async function runChecks(opts: RunOptions): Promise<VerificationReport> {
-  const {rpcUrl, actors = [], requiredEnv = [], minBalanceEth = 0.05} = opts;
+  const {rpcUrl, actors = [], requiredEnv = [], minBalanceEth = 0.01} = opts;
   const client = makeClient(rpcUrl);
   const results: CheckResult[] = [];
 
@@ -503,6 +523,7 @@ export async function runChecks(opts: RunOptions): Promise<VerificationReport> {
 
   // ---- accounts ------------------------------------------------------------
   for (const actor of actors) {
+    const floor = actor.minEth ?? minBalanceEth;
     results.push(
       await attempt(
         {
@@ -510,7 +531,7 @@ export async function runChecks(opts: RunOptions): Promise<VerificationReport> {
           group: 'accounts',
           label: `${actor.name} balance`,
           address: actor.address,
-          expected: `≥ ${minBalanceEth} ETH`,
+          expected: `≥ ${floor} ETH`,
           howChecked: `eth_getBalance(${short(actor.address)})`,
           source: '.env (address derived from the private key; the key itself is never logged)',
           remediation: `Fund the ${actor.name} wallet with Sepolia ETH (faucet, or a transfer from the deployer).`,
@@ -518,7 +539,7 @@ export async function runChecks(opts: RunOptions): Promise<VerificationReport> {
         async () => {
           const wei = await client.getBalance({address: getAddress(actor.address)});
           const eth = Number(formatEther(wei));
-          return {actual: `${eth.toFixed(4)} ETH`, ok: eth >= minBalanceEth};
+          return {actual: `${eth.toFixed(4)} ETH`, ok: eth >= floor};
         },
       ),
     );

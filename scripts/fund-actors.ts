@@ -16,20 +16,13 @@ import {config as loadEnv} from 'dotenv';
 import {createWalletClient, createPublicClient, http, formatEther, parseEther} from 'viem';
 import {privateKeyToAccount} from 'viem/accounts';
 import {sepolia} from 'viem/chains';
+import {ACTOR_FUNDING_TARGETS} from './lib/checks';
 
 const here = dirname(fileURLToPath(import.meta.url));
 loadEnv({path: resolve(here, '..', '.env'), quiet: true});
 
-/** Target balance per wallet, sized to what each one actually does. */
-const TARGETS = [
-  {name: 'Attester', env: 'ATTESTER_PRIVATE_KEY', eth: '0.08'}, // one registerHuman tx per verification
-  {name: 'Alice', env: 'ACTOR_ALICE_PK', eth: '0.12'}, // LP mint + swaps
-  {name: 'Stranger', env: 'ACTOR_STRANGER_PK', eth: '0.04'}, // only ever reverts, but still pays gas
-  {name: 'Bot', env: 'ACTOR_BOT_PK', eth: '0.04'}, // small repeated swaps in Phase 6
-];
-
 /** Leave this much with the deployer no matter what; Phase 2 deploys are the expensive ones. */
-const DEPLOYER_FLOOR = parseEther('0.3');
+const DEPLOYER_FLOOR = parseEther('0.15');
 
 const send = process.argv.includes('--send');
 const rpcUrl = process.env.SEPOLIA_RPC_URL;
@@ -52,7 +45,7 @@ console.log(`Deployer ${deployer.address} — ${formatEther(deployerBalance)} ET
 let totalNeeded = 0n;
 const plan: {name: string; to: `0x${string}`; value: bigint}[] = [];
 
-for (const target of TARGETS) {
+for (const target of ACTOR_FUNDING_TARGETS) {
   const key = process.env[target.env];
   if (!key) {
     console.log(`  ${target.name.padEnd(9)} — ${target.env} not set, skipping`);
