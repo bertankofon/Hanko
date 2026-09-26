@@ -7,8 +7,11 @@
     "verify": "pnpm --filter @hanko/verify verify",
     "dev": "pnpm --filter @hanko/app dev",
     "build": "pnpm --filter @hanko/app build",
-    "test:contracts": "cd contracts && forge test"
+    "test:contracts": "cd contracts && forge test",
+    "fund": "pnpm --filter @hanko/verify fund"
   },
   "packageManager": "pnpm@10.30.0",
-  "engines": { "node": ">=22" }
+  "engines": {
+    "node": ">=22"
+  }
 }

@@ -8,7 +8,8 @@
     ".": "./lib/checks.ts"
   },
   "scripts": {
-    "verify": "tsx verify-env.ts"
+    "verify": "tsx verify-env.ts",
+    "fund": "tsx fund-actors.ts"
   },
   "dependencies": {
     "viem": "^2.21.0"
