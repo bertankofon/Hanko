@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import {FlowDiagram} from '@/components/overview/FlowDiagram';
+import {NameResolution} from '@/components/overview/NameResolution';
+import {PoolGate} from '@/components/overview/PoolGate';
 import {Reveal} from '@/components/overview/Reveal';
 
 export const metadata = {
@@ -85,16 +86,115 @@ export default function OverviewPage() {
         </div>
       </section>
 
-      {/* The mechanism, animated. */}
+      {/* Step one: what already exists. */}
       <section className={band}>
         <Reveal>
-          <p className={eyebrow}>Every swap</p>
-          <h2 className="text-section text-balance">The rule runs inside the trade.</h2>
+          <p className={eyebrow}>What Uniswap already gives you</p>
+          <h2 className="text-section text-balance">
+            A pool that refuses anyone it has not been told to allow.
+          </h2>
         </Reveal>
 
         <Reveal delay={140} className="mt-10">
-          <FlowDiagram />
+          <PoolGate />
         </Reveal>
+
+        <Reveal delay={240}>
+          <div className="mt-8 space-y-4">
+            <p className="text-lead text-balance">
+              <span className="font-semibold text-ink">Uniswap ships the socket, not the answer.</span>{' '}
+              <span className="text-muted">
+                A permissioned pool calls one function on every swap and on every deposit of
+                liquidity — is this address allowed? Who decides, and on what basis, is left to
+                whoever runs the venue.
+              </span>
+            </p>
+            <p className="text-lead text-balance">
+              <span className="font-semibold text-ink">Most venues answer with a mapping.</span>{' '}
+              <span className="text-muted">
+                An address and a boolean. It works, and it forgets everything else: when the
+                permission should end, whether it can be handed on, who granted it, and who is
+                acting for whom.
+              </span>
+            </p>
+          </div>
+        </Reveal>
+      </section>
+
+      {/* Step two: what we put behind it. */}
+      <section className={band}>
+        <Reveal>
+          <p className={eyebrow}>What Hanko puts behind it</p>
+          <h2 className="text-section text-balance">
+            The same question, answered by a name instead of a boolean.
+          </h2>
+        </Reveal>
+
+        <Reveal delay={140} className="mt-10">
+          <NameResolution />
+        </Reveal>
+
+        <Reveal delay={240}>
+          <div className="mt-8 space-y-4">
+            <p className="text-lead text-balance">
+              <span className="font-semibold text-ink">
+                The shape of the name is the permission.
+              </span>{' '}
+              <span className="text-muted">
+                A name under <span className="font-mono">swap.tnvda.eth</span> means this wallet may
+                trade. One under <span className="font-mono">lp.tnvda.eth</span> means it may
+                provide liquidity. A name sitting <em>inside</em> an investor&apos;s own registry
+                means it is their agent, and can only trade.
+              </span>
+            </p>
+            <p className="text-lead text-balance">
+              <span className="font-semibold text-ink">Nothing is kept in our contract.</span>{' '}
+              <span className="text-muted">
+                Expiry, revocation and the whole delegation chain are ENS behaviour. Revoke the
+                investor and the pool stops resolving their bot in the same transaction — with no
+                list of ours to go and clean up.
+              </span>
+            </p>
+          </div>
+        </Reveal>
+      </section>
+
+      {/* What the project is trying to achieve. */}
+      <section className={band}>
+        <Reveal>
+          <p className={eyebrow}>What this is for</p>
+          <h2 className="text-section text-balance">
+            Making a venue&apos;s access rules something anyone can check.
+          </h2>
+        </Reveal>
+
+        <div className="mt-10 grid gap-4 sm:grid-cols-2">
+          {[
+            [
+              'Enforced, not promised.',
+              'The restriction runs inside the swap, not in a document nobody reads.',
+            ],
+            [
+              'Nothing goes stale.',
+              'Permissions end on their own, and revoking one revokes everything under it.',
+            ],
+            [
+              'Delegation with a limit.',
+              'A bot can trade its principal’s strategy and can never commit their capital.',
+            ],
+            [
+              'Readable by outsiders.',
+              'A regulator or a counterparty checks ENS, not our database.',
+            ],
+          ].map(([bold, rest], i) => (
+            <Reveal key={bold} delay={i * 120}>
+              <div className="h-full rounded-2xl border border-line bg-panel p-7">
+                <p className="text-lead font-semibold">{bold}</p>
+                <p className="text-body mt-3 text-muted">{rest}</p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
       </section>
 
       {/* ENS, stated as three properties rather than described. */}
