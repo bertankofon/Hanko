@@ -141,6 +141,36 @@ function decodeRevert(err: unknown): {name: string; args: readonly unknown[]} | 
   return null;
 }
 
+/**
+ * Reads how much tNVDA this transaction actually moved for `account`, from its own logs.
+ *
+ * Diffing the wallet balance before and after looks simpler and is wrong: anything else touching
+ * the same wallet in the meantime lands in the number. That is not hypothetical here — the Phase 6
+ * bot trades on a timer, and two people at a laptop is enough to produce it. The receipt only
+ * contains this transaction's transfers.
+ */
+function tnvdaMovedInReceipt(
+  logs: readonly {address: string; topics: readonly string[]; data: string}[],
+  token: Address,
+  account: Address,
+): bigint {
+  const TRANSFER = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+  const padded = account.toLowerCase().slice(2).padStart(64, '0');
+
+  let total = 0n;
+  for (const log of logs) {
+    if (log.address.toLowerCase() !== token.toLowerCase()) continue;
+    if (log.topics[0] !== TRANSFER) continue;
+
+    const from = log.topics[1]?.slice(2);
+    const to = log.topics[2]?.slice(2);
+    if (from !== padded && to !== padded) continue;
+
+    total += BigInt(log.data);
+  }
+  return total;
+}
+
 export async function swap(_prev: SwapResult, formData: FormData): Promise<SwapResult> {
   const client = getClient();
   const key = getPoolKey();
@@ -173,13 +203,6 @@ export async function swap(_prev: SwapResult, formData: FormData): Promise<SwapR
     return {status: 'error', headline: 'Bad amount', detail: `Could not read "${rawAmount}".`};
   }
 
-  const tokenBefore = await client.readContract({
-    address: token,
-    abi: tokenAbi,
-    functionName: 'balanceOf',
-    args: [actor.address],
-  });
-
   try {
     await ensureApprovals(wallet, payTokenAddress);
 
@@ -204,21 +227,14 @@ export async function swap(_prev: SwapResult, formData: FormData): Promise<SwapR
       account: wallet.account,
     });
     const receipt = await client.waitForTransactionReceipt({hash});
-
-    const tokenAfter = await client.readContract({
-      address: token,
-      abi: tokenAbi,
-      functionName: 'balanceOf',
-      args: [actor.address],
-    });
-
-    const delta = tokenAfter - tokenBefore;
-    const moved = delta >= 0n ? delta : -delta;
+    const moved = tnvdaMovedInReceipt(receipt.logs, token, actor.address);
 
     return {
       status: 'ok',
       headline: `${actor.name} swapped ${rawAmount} ${usdcIn ? 'USDC' : 'tNVDA'}`,
-      detail: `${delta >= 0n ? 'Received' : 'Sold'} ${formatUnits(moved, 18)} tNVDA. Gas used ${receipt.gasUsed}.`,
+      detail:
+        `${usdcIn ? 'Received' : 'Sold'} ${formatUnits(moved, 18)} tNVDA. ` +
+        `Gas used ${receipt.gasUsed}.`,
       txHash: hash,
     };
   } catch (err) {

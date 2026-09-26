@@ -152,7 +152,7 @@ export default async function PoolPage() {
           <h2 className="text-sm font-semibold">Who may hold {symbol}?</h2>
           <p className="mt-0.5 text-xs text-muted">
             Balances and permissions are read from chain on every load. Swap and LP are separate
-            grants — the pool enforces them in Phase 2; today only the raw flags exist.
+            grants, and the pool below enforces both.
           </p>
         </header>
 
@@ -237,7 +237,7 @@ export default async function PoolPage() {
         <div className="flex items-start gap-2">
           <span className={`mt-1 size-2 shrink-0 rounded-full ${checkersAgree ? 'bg-pass' : 'bg-fail'}`} />
           <p className="leading-relaxed">
-            <span className="text-ink">The token defers to the same checker the pool will.</span>{' '}
+            <span className="text-ink">The token defers to the same checker the pool does.</span>{' '}
             <span className="text-muted">
               {checkersAgree
                 ? `${symbol}.checker() is ${activeChecker}, which is the checker this page reads. If the two
