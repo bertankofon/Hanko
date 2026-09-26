@@ -6,6 +6,8 @@ interface Member {
   label: string;
   swap: boolean;
   liquidity: boolean;
+  /// Set when this wallet trades on someone else's behalf.
+  principal: string | null;
 }
 
 /**
@@ -26,8 +28,13 @@ export function NameTree({
   lpRegistry: string;
   members: Member[];
 }) {
-  const swapHolders = members.filter((m) => m.swap);
-  const lpHolders = members.filter((m) => m.liquidity);
+  // An agent's name lives inside its principal's registry, not beside it, so it is drawn under
+  // the principal rather than as a sibling. That nesting is the delegation.
+  const agents = members.filter((m) => m.principal);
+  const swapHolders = members.filter((m) => m.swap && !m.principal);
+  const lpHolders = members.filter((m) => m.liquidity && !m.principal);
+  const agentsOf = (principal: string) =>
+    agents.filter((a) => a.principal?.toLowerCase() === principal.toLowerCase());
 
   return (
     <section className="overflow-hidden rounded-xl border border-line bg-panel">
@@ -64,6 +71,7 @@ export function NameTree({
           registry={swapRegistry}
           note="a name here means: may trade"
           holders={swapHolders}
+          agentsOf={agentsOf}
           last={false}
         />
         <Branch
@@ -83,12 +91,14 @@ function Branch({
   registry,
   note,
   holders,
+  agentsOf,
   last,
 }: {
   label: string;
   registry: string;
   note: string;
   holders: Member[];
+  agentsOf?: (principal: string) => Member[];
   last: boolean;
 }) {
   const stem = last ? '   └─ ' : '   ├─ ';
@@ -112,21 +122,46 @@ function Branch({
       {holders.length === 0 ? (
         <div className="text-pending">{rail}└─ (nobody)</div>
       ) : (
-        holders.map((m, i) => (
-          <div key={m.address} className="text-muted">
-            {rail}
-            {i === holders.length - 1 ? '└─ ' : '├─ '}
-            <a
-              className="text-ink underline underline-offset-2"
-              href={explorer(m.address)}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {m.label.slice(0, 10)}…{m.label.slice(-4)}
-            </a>{' '}
-            <span className="text-pending">— {m.name}</span>
-          </div>
-        ))
+        holders.map((m, i) => {
+          const lastHolder = i === holders.length - 1;
+          const agents = agentsOf?.(m.address) ?? [];
+          return (
+            <span key={m.address}>
+              <div className="text-muted">
+                {rail}
+                {lastHolder ? '└─ ' : '├─ '}
+                <a
+                  className="text-ink underline underline-offset-2"
+                  href={explorer(m.address)}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {m.label.slice(0, 10)}…{m.label.slice(-4)}
+                </a>{' '}
+                <span className="text-pending">— {m.name}</span>
+              </div>
+
+              {agents.map((agent, j) => (
+                <div key={agent.address} className="text-muted">
+                  {rail}
+                  {lastHolder ? '   ' : '│  '}
+                  {j === agents.length - 1 ? '└─ ' : '├─ '}
+                  <a
+                    className="text-ink underline underline-offset-2"
+                    href={explorer(agent.address)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {agent.label.slice(0, 10)}…{agent.label.slice(-4)}
+                  </a>{' '}
+                  <span className="text-pending">
+                    — {agent.name}, inside {m.name}&apos;s own registry (swap only)
+                  </span>
+                </div>
+              ))}
+            </span>
+          );
+        })
       )}
     </>
   );

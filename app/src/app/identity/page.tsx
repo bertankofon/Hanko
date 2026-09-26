@@ -52,7 +52,7 @@ export default async function IdentityPage() {
 
   const rows = await Promise.all(
     actors.map(async (actor) => {
-      const [flagsRaw, expiries, label] = await Promise.all([
+      const [flagsRaw, expiries, label, principal] = await Promise.all([
         client.readContract({
           address: ensChecker,
           abi: ensCheckerAbi,
@@ -71,6 +71,12 @@ export default async function IdentityPage() {
           functionName: 'labelFor',
           args: [actor.address],
         }),
+        client.readContract({
+          address: ensChecker,
+          abi: ensCheckerAbi,
+          functionName: 'principalOf',
+          args: [actor.address],
+        }),
       ]);
 
       const flags = decodeFlags(flagsRaw);
@@ -82,6 +88,7 @@ export default async function IdentityPage() {
         liquidity: flags.liquidity,
         swapExpiry: Number(expiries[0]),
         lpExpiry: Number(expiries[1]),
+        principal: principal === '0x0000000000000000000000000000000000000000' ? null : principal,
       };
     }),
   );
@@ -144,8 +151,15 @@ export default async function IdentityPage() {
               {rows.map((row) => (
                 <tr key={row.address} className="hover:bg-panel-2">
                   <td className="px-4 py-2.5">
-                    <div>{row.name}</div>
-                    <div className="text-xs text-muted">{row.role}</div>
+                    <div className={row.principal ? 'pl-4' : ''}>
+                      {row.principal && <span className="text-pending">└─ </span>}
+                      {row.name}
+                    </div>
+                    <div className={`text-xs text-muted ${row.principal ? 'pl-4' : ''}`}>
+                      {row.principal
+                        ? `agent of ${rows.find((r) => r.address === row.principal)?.name ?? row.principal}`
+                        : row.role}
+                    </div>
                   </td>
                   <td className="px-4 py-2.5">
                     <a
@@ -157,13 +171,15 @@ export default async function IdentityPage() {
                       {row.label.slice(0, 12)}…{row.label.slice(-6)}
                     </a>
                     <div className="text-xs text-pending">
-                      {row.swap && row.liquidity
-                        ? '.swap + .lp.tnvda.eth'
-                        : row.swap
-                          ? '.swap.tnvda.eth'
-                          : row.liquidity
-                            ? '.lp.tnvda.eth'
-                            : 'no name registered'}
+                      {row.principal
+                        ? 'inside its principal’s registry'
+                        : row.swap && row.liquidity
+                          ? '.swap + .lp.tnvda.eth'
+                          : row.swap
+                            ? '.swap.tnvda.eth'
+                            : row.liquidity
+                              ? '.lp.tnvda.eth'
+                              : 'no name registered'}
                     </div>
                   </td>
                   <td className="px-4 py-2.5 font-mono text-xs text-muted">{row.raw}</td>

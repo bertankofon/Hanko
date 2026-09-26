@@ -122,6 +122,23 @@ export const ensCheckerAbi = [
     outputs: [{type: 'string'}],
     stateMutability: 'pure',
   },
+  {
+    type: 'function',
+    name: 'principalOf',
+    inputs: [{name: 'account', type: 'address'}],
+    outputs: [{type: 'address'}],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'isActiveAgent',
+    inputs: [
+      {name: 'account', type: 'address'},
+      {name: 'label', type: 'string'},
+    ],
+    outputs: [{type: 'bool'}],
+    stateMutability: 'view',
+  },
 ] as const;
 
 export const ensRegistryAbi = [

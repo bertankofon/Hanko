@@ -245,3 +245,72 @@ elle yazılır ve başka uygulamalar okuyamaz.
 
 Kira: 8 ENS-USDC / yıl. Havuz artık ENS okuyor; `SwitchChecker` ile tek işlemde mapping'e geri
 dönülebiliyor.
+
+## Faz 6 — Agent delegasyonu (projenin ENS kalbi)
+
+**Ne yaptık.** Alice kendi kayıt defterini aldı, bot'a onun içinde bir isim verdi, ve bot havuzda
+Sepolia'da gerçek bir swap yaptı. Alice iptal edilince bot **kendiliğinden** durdu. 12 yeni test
+(toplam 64).
+
+### Kurulumdan önce kaynaktan doğrulanan üç varsayım
+
+1. `getSubregistry` süresi dolmuş isimde `address(0)` döndürüyor —
+   `_isExpired(entry.expiry) ? 0 : entry.subregistry`.
+2. **`unregister` de aynı sonucu veriyor:** `entry.expiry = block.timestamp` yazıyor ve
+   `_isExpired` `>=` ile bakıyor, yani iptal aynı işlemde etkili. İptal zincirini elle yazmaya
+   gerek kalmadı.
+3. `ROLE_SET_SUBREGISTRY` transfer hakkı açmıyor (ayrı nybble). Alice kendi defterini asabiliyor
+   ama ismi hâlâ devredilemez.
+
+### Tasarım: indeks bizim mapping'imizde değil, ENS'te
+
+Uniswap checker'a sadece adres veriyor (`checkAllowlist(account, token)`), dolayısıyla bot'un
+adresinden sahibini bulabilmek gerekiyor. Saf hiyerarşi bunu tek başına veremez — adresten
+"hangi insanın defterine bakayım" sorusunun cevabı yok.
+
+CLAUDE.md bu indeksi `HumanRegistrar` içinde bir `agentParent` mapping'inde tutmayı öneriyordu.
+Onun yerine **ENS'in kendi alanına** koyduk: `agents.tnvda.eth` altında her agent için bir kayıt,
+ve o kaydın **`subregistry` alanı** sahibinin defterini gösteriyor. Çözüm zinciri:
+
+```
+agents.tnvda.eth[bot].getSubregistry()  → Alice'in defteri   (bot'un kaydı iptal olursa 0)
+Alice'in defteri.getParent()            → (swapRegistry, aliceLabel)
+swapRegistry.findOwner(aliceLabel)      → Alice hâlâ yetkili mi?   ← zincir burada kopuyor
+Alice'in defteri.findOwner(botLabel)    → bot'un izni duruyor mu?
+```
+
+Dört okuma, dördü de ENS'in zaten bildiği şeyler. **Kendi kontratımızda tek satır state yok.**
+
+**İndeks yetki değil, işaretçi.** Birinin agent kaydını başkasının defterine yöneltmesi hiçbir şey
+kazandırmıyor: son adımda o defterin içinde isim aranıyor ve o ismi sadece defterin sahibi
+verebiliyor. Test: `test_indexEntryAloneGrantsNothing`.
+
+**Yetki ayrılığı burada da var:** venue işaretçiyi yazar (`agents.tnvda.eth`'te `ROLE_REGISTRAR`
+operatörde), yatırımcı ismi verir (kendi defterinde `ROLE_REGISTRAR` onda). Hiçbiri diğerinin
+yarısını yapamıyor. Alice bot'unu venue'ya sormadan geri alabiliyor (`undelegate`).
+
+### Sürpriz
+
+`setSubregistry` ile defteri asmak yetmiyor — **geri bağlantı (`setParent`) da kurulmalı.**
+`getParent()` sadece `setParent`'ın yazdığını okuyor, ebeveynin `setSubregistry`'sinden
+türetilmiyor. Kurmayınca checker "bu defter kimin?" sorusunu cevaplayamıyor ve tüm agent zinciri
+sessizce çalışmıyor. İlk testlerde tam olarak bu oldu.
+
+### Ölçüm
+
+| Yol | swap gas |
+|---|---|
+| Mapping checker | 215.010 |
+| ENS, doğrudan isim (Alice) | 272.640 |
+| ENS, agent zinciri (Bot) | 349.123 |
+
+Agent çözümü doğrudan isme göre ~76k daha pahalı — dört ek ENS okuması. Karşılığında delegasyonun
+iptali için ayrı bir mekanizma yazmak gerekmiyor.
+
+### Sepolia adresleri (Faz 6)
+
+| | |
+|---|---|
+| agents.tnvda.eth | `0x385C90b1613D30706828380133bfdC3D61A49107` |
+| Alice'in kendi defteri | `0xBA8daFac04175cbc3cD25d596046F9B71cFf169b` |
+| EnsAllowlistChecker (agent'lı) | `0xC26f633Dd7BD41bE832c132104149714f0ef00FB` |
