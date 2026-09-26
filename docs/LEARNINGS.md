@@ -314,3 +314,43 @@ iptali için ayrı bir mekanizma yazmak gerekmiyor.
 | agents.tnvda.eth | `0x385C90b1613D30706828380133bfdC3D61A49107` |
 | Alice'in kendi defteri | `0xBA8daFac04175cbc3cD25d596046F9B71cFf169b` |
 | EnsAllowlistChecker (agent'lı) | `0xC26f633Dd7BD41bE832c132104149714f0ef00FB` |
+
+## Faz 5 — Venue operator konsolu ve Audit
+
+**Ne yaptık.** Halt/Resume, iptal ve unwind düğmeleri; zincirden okunan bir zaman çizelgesi.
+3 yeni test (toplam 67).
+
+### Sürprizler
+
+1. **Alchemy ücretsiz planı `eth_getLogs`'u 10 blokla sınırlıyor.** Bizim geçmiş ~2.000 blok,
+   yani 200 ayrı çağrı gerekirdi. Denenen alternatifler: publicnode (rate limit), drpc (10.000
+   blok, çalışır). Sonunda **Etherscan API**'sine geçtik — zaten anahtarımız var, sınırı yok ve
+   bonus olarak **zaman damgası** döndürüyor, o yüzden satırlarda blok numarası yerine gerçek
+   saat yazıyor.
+
+2. **Etherscan 5 istek/sn ile sınırlı ve paralel çektiğimizde bir kısmı sessizce düşüyordu.**
+   İlk halinde `swap.tnvda.eth` kayıtlarının tamamı listede yoktu ve sayfa bunu hiç belli
+   etmiyordu — bir denetim sayfası için en kötü hata türü. Sıralı çekime geçtik ve okunamayan
+   kaynak olursa sayfa "bu liste eksik" diyor. **Kural: audit yüzeyi sessizce eksik veri
+   göstermemeli.**
+
+3. **İptal → yeniden kayıt, delegasyonu sessizce koparıyor.** `unregister` sonrası `register`
+   yeni bir entry yaratıyor; yeni entry'nin `subregistry`'si boş ve rolleri sıfır. Yani Alice'i
+   iptal edip geri alınca kendi defterine bağlantısı kopuyor, bot da çözülmüyor. Script bunu
+   görünce defteri yeniden deploy etmeye çalışıp revert ediyordu (aynı salt, aynı adres).
+   Düzeltme: defterin adresi `deployments`'a yazılıyor ve varsa **yeniden deploy etmeden geri
+   bağlanıyor**. Demo günü "iptal et, sonra geri al" dediğimizde tam olarak bu patlardı.
+
+4. **`unwindPosition` canlı test edilmedi** — havuzun tek pozisyonunu kapatır ve demoyu bozardı.
+   Fork testleriyle doğrulandı: pozisyon kapanıyor, iki varlık da LP'ye dönüyor, operatör dışında
+   kimse çağıramıyor, ve **iptal edilmiş bir LP bile parasını geri alabiliyor** (iptal ≠ el koyma).
+
+### Audit'in kaynakları
+
+`swap` / `lp` / `agents` registry'leri (LabelRegistered, LabelUnregistered), adapter
+(SwappingEnabledUpdated, AllowListCheckerUpdated), hook (Swap), position manager
+(CurrencyUnwound). Hepsi Etherscan üzerinden, deploy bloğundan itibaren.
+
+Sayfanın üstünde "bu sayfaya güvenmeyin" kutusu var: event'ler bizim tuttuğumuz log değil,
+kontratların yaydığı kayıtlar; aynı listeyi uygulamamız çalışmadan da herkes çekebilir. İzinler
+ENS isimleri olduğu için ENS'in kendi explorer'ında da görünüyorlar.
