@@ -183,3 +183,65 @@ checker'ı ile aynı ölçüm tekrarlanacak; asıl kıyas o.
 | MockUSDC | `0xB30c9206F2747f122A3AB2924a537193eCB623fa` |
 | poolId | `0x7fa0ce83de5a3d08be5dcb359c65283ba15be677f30fb1d1b7640d4fc3aaf765` |
 | LP pozisyonu | tokenId 1, sahibi Alice |
+
+## Faz 3 — ENSv2 ve EnsAllowlistChecker
+
+**Ne yaptık.** `tnvda.eth` kaydı, üç UserRegistry proxy'si (`tnvda` / `swap` / `lp`),
+`EnsAllowlistChecker`, canlı checker değişimi ve Identity sekmesi. 29 yeni test (toplam 52).
+
+**Kavram.** İzin artık bir mapping satırı değil, bir isim: `<adres>.swap.tnvda.eth`. Üç özellik
+kod yazmadan ENS'ten geliyor — süre dolumu (`findOwner` süresi geçmiş isimde `address(0)`
+döndürüyor), devredilemezlik (`roleBitmap = 0`), ve ekleme/silme yetkilerinin ayrılığı
+(`ROLE_REGISTRAR` vs `ROLE_UNREGISTER`). Dördüncüsü Faz 6'nın temeli: isimler iç içe geçiyor.
+
+### Sürprizler
+
+1. **Commitment, subregistry adresini de bağlıyor.** `makeCommitment`'ta `address(0)`,
+   `register`'da gerçek registry verince hash tutmuyor ve hata `CommitmentTooOld` olarak geliyor —
+   "commitment yok" demek istiyor ama "çok eski" diyor. İsmi boş alıp sonra
+   `setSubregistry` ile bağladık.
+
+2. **`makeAddr("alice")` adresinin Sepolia'da gerçekten kodu var** (~23 byte, muhtemelen o meşhur
+   test anahtarıyla yapılmış bir EIP-7702 delegasyonu). ENS isimleri ERC-1155 token olduğu için
+   mint sırasında alıcıya `onERC1155Received` çağrılıyor ve fork testleri patlıyor. Çözüm: fork
+   seçildikten **sonra** `vm.etch(addr, "")`. Constructor'da yapmak işe yaramıyor, fork state'i
+   üzerine yazıyor.
+
+3. **`vm.prank` tuzağı ikinci kez.** `revokeName` içindeki `findTokenId` okuması prank'i tüketti,
+   çağrı test kontratından gitti. Artık refleks: prank ile hedef çağrı arasına hiçbir dış okuma
+   koyma, ya da `startPrank` kullan.
+
+4. **Sepolia'nın txpool'u doldu** (`-32003: txpool is full`) ve script'in son üç işlemi düştü.
+   Simülasyon başarılı göründüğü için log'lar "admitted" yazdı ama zincire gitmedi. Bu yüzden
+   `AdmitMembers` idempotent yazıldı — tekrar çalıştırınca eksikleri tamamlıyor, var olanda
+   revert etmiyor. **Ders:** çok işlemli deploy script'leri kısmi başarıya dayanıklı olmalı.
+
+5. **`forge script` simülasyonu son bloğun zaman damgasına bakıyor**, o da gerçek saatin ~30 sn
+   gerisinde. Commit/reveal beklemesi bu yüzden 60 değil ~90 sn sürdü.
+
+### Ölçüm — jürinin soracağı rakam
+
+Aynı rota, aynı miktar, gerçek Sepolia swap'ları:
+
+| Checker | swap gas | `checkAllowlist` (ort.) |
+|---|---|---|
+| Mapping (Simple) | 215.010 | 1.918 |
+| ENS | 272.640 | 39.310 |
+| **Fark** | **+57.630 (+%27)** | |
+
+Yorum: ENS okuması bir proxy'ye delegatecall + string hash + soğuk storage okuması demek ve
+swap başına birkaç kez çağrılıyor. %27 ucuz değil ama bunun karşılığında süre dolumu,
+devredilemezlik, yetki ayrılığı ve hiyerarşik delegasyon bedava geliyor — mapping ile hepsi
+elle yazılır ve başka uygulamalar okuyamaz.
+
+### Sepolia adresleri (Faz 3)
+
+| | |
+|---|---|
+| tnvda.eth registry | `0x2462d01326F42ccfDbcC6358e2c8B4fd157Ea7fC` |
+| swap.tnvda.eth | `0xbB8A0C79945993eCf1ACd4177B896A75C2998dce` |
+| lp.tnvda.eth | `0xA35983B2b124e34AC65e77F4c854a3a356274A55` |
+| EnsAllowlistChecker | `0x9d4f612f25f18FA6eAE1700c6e8Fb92aD35b7806` |
+
+Kira: 8 ENS-USDC / yıl. Havuz artık ENS okuyor; `SwitchChecker` ile tek işlemde mapping'e geri
+dönülebiliyor.
