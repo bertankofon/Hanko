@@ -61,15 +61,11 @@ export default function OverviewPage() {
   return (
     <div className="mx-auto max-w-4xl">
       {/* The order, first, because it is the reason any of this exists. */}
-      <header className="py-10 sm:py-16">
+      <header className="pt-4 pb-10 sm:pt-6 sm:pb-16">
         <Reveal>
-          <div className="mb-6 flex items-center gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element -- fixed-size brand asset */}
-            <img src="/brand/hanko-mark-trimmed.webp" alt="" className="h-8 w-auto" />
-            <p className="text-sm font-medium uppercase tracking-[0.2em] text-seal">
-              17 September 2026 · the reason for this project
-            </p>
-          </div>
+          <p className="mb-6 text-sm font-medium uppercase tracking-[0.2em] text-seal">
+            17 September 2026 · the reason for this project
+          </p>
         </Reveal>
 
         <Reveal delay={100}>

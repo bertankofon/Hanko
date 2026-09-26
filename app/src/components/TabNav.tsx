@@ -12,9 +12,10 @@ export function TabNav({tabs}: {tabs: Tab[]}) {
   const pathname = usePathname();
 
   return (
-    /* No horizontal padding on the links: the first tab lines up with the mark in the header
-       above it, so the spacing lives in the gap instead. */
-    <nav className="flex flex-wrap gap-x-8 gap-y-1 border-b border-line">
+    /* Lives inside the header bar. items-stretch on both the header and this nav pulls each
+       link to the header's full height, so `-bottom-px` on the active indicator lands exactly
+       on the header's own bottom border — one line, not two. */
+    <nav className="flex flex-wrap items-stretch gap-x-6">
       {tabs.map((tab) => {
         const active = pathname.startsWith(tab.href);
         return (
@@ -22,7 +23,7 @@ export function TabNav({tabs}: {tabs: Tab[]}) {
             key={tab.href}
             href={tab.href}
             className={[
-              'relative py-4 text-base font-medium tracking-tight transition-colors',
+              'relative flex items-center py-3 text-base font-medium tracking-tight transition-colors',
               active ? 'text-ink' : 'text-muted hover:text-ink',
             ].join(' ')}
           >
