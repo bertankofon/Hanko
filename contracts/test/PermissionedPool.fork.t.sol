@@ -33,6 +33,11 @@ import {PermissionedPoolWiring} from "../src/PermissionedPoolWiring.sol";
 import {EnsAllowlistChecker, IEnsRegistry} from "../src/EnsAllowlistChecker.sol";
 import {EnsFixture} from "./helpers/EnsFixture.sol";
 
+interface IPermissionedPosm {
+    function unwindPosition(uint256 tokenId, uint128 amount0Min, uint128 amount1Min, bytes calldata hookData)
+        external;
+}
+
 /// @notice Stands the whole pool up against the *real* Uniswap contracts on Sepolia.
 ///
 /// @dev These deployments cannot be reproduced locally — the hook's address encodes its
@@ -544,6 +549,55 @@ contract PermissionedPoolForkTest is Test, EnsFixture {
         adoptParent(aliceRegistry, alice);
         grantAgentName(aliceRegistry, bot, expiry);
         vm.stopPrank();
+    }
+
+
+    // ---------------------------------------------------------------------------------------
+    // Phase 5: the operator's levers
+    // ---------------------------------------------------------------------------------------
+
+    /// Barring someone must not strand their capital. The operator can force-close a position and
+    /// the assets go back to the LP, which is what makes revocation a control rather than a trap.
+    function test_operatorCanUnwindAPositionBackToTheLp() public {
+        uint256 tokenId = _mintPosition(alice, 500e18, 100_000e6);
+
+        uint256 tnvdaBefore = token.balanceOf(alice);
+        uint256 usdcBefore = usdc.balanceOf(alice);
+
+        vm.prank(issuer);
+        IPermissionedPosm(POSM).unwindPosition(tokenId, 0, 0, "");
+
+        assertEq(IPositionManager(POSM).getPositionLiquidity(tokenId), 0, "position still has liquidity");
+        assertGt(token.balanceOf(alice), tnvdaBefore, "tNVDA did not come back");
+        assertGt(usdc.balanceOf(alice), usdcBefore, "USDC did not come back");
+    }
+
+    /// The lever belongs to the venue. A participant cannot force another out of their position.
+    function test_onlyTheOperatorCanUnwind() public {
+        uint256 tokenId = _mintPosition(alice, 500e18, 100_000e6);
+
+        vm.prank(stranger);
+        vm.expectRevert();
+        IPermissionedPosm(POSM).unwindPosition(tokenId, 0, 0, "");
+    }
+
+    /// Revoked, and still able to get their assets out — the two have to be independent or a
+    /// revocation becomes a confiscation.
+    function test_aRevokedLpCanStillBeUnwound() public {
+        uint256 tokenId = _mintPosition(alice, 500e18, 100_000e6);
+        _switchToEns(2 hours);
+
+        vm.startPrank(issuer);
+        revokeName(swapRegistry, alice);
+        revokeName(lpRegistry, alice);
+        vm.stopPrank();
+
+        uint256 usdcBefore = usdc.balanceOf(alice);
+
+        vm.prank(issuer);
+        IPermissionedPosm(POSM).unwindPosition(tokenId, 0, 0, "");
+
+        assertGt(usdc.balanceOf(alice), usdcBefore, "a revoked LP was left stranded");
     }
 
     /// @dev Turns a Q64.96 sqrt price into whole USDC per whole tNVDA, whichever side tNVDA is

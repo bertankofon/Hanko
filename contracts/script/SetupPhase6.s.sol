@@ -118,15 +118,31 @@ contract SetupPhase6 is Script, HankoEnv {
         string memory aliceLabel = labelFor(e.alice);
         string memory botLabel = labelFor(e.bot);
 
-        // The principal's registry hangs under their own name; deploy it once.
+        // The principal's registry hangs under their own name.
+        //
+        // Revoking a name and granting it again creates a *new* entry, which starts with no
+        // subregistry and no roles — so a revoke/re-admit cycle silently detaches the investor
+        // from their own registry and every agent under it stops resolving. Re-attaching has to
+        // work without redeploying, or the demo breaks the first time access is restored.
         address aliceRegistry = IUserRegistry(swapRegistry).getSubregistry(aliceLabel);
         uint64 expiry = IUserRegistry(swapRegistry).findExpiry(aliceLabel);
+        address recorded = readAddressOrZero(json, ".hanko.AliceRegistry");
 
         if (aliceRegistry == address(0)) {
+            bool reuse = recorded != address(0) && recorded.code.length > 0;
+
             vm.startBroadcast(e.deployerKey);
-            aliceRegistry = deployRegistry(
-                json.readAddress(".ens.VerifiableFactory"), json.readAddress(".ens.UserRegistryImpl"), e.alice, 11
-            );
+            if (!reuse) {
+                aliceRegistry = deployRegistry(
+                    json.readAddress(".ens.VerifiableFactory"),
+                    json.readAddress(".ens.UserRegistryImpl"),
+                    e.alice,
+                    11
+                );
+            } else {
+                aliceRegistry = recorded;
+            }
+
             uint256 tokenId = IUserRegistry(swapRegistry).findTokenId(aliceLabel);
             // Let Alice re-point her own registry later. Not a transfer right — that is a
             // different role, so her name stays non-transferable.
@@ -134,11 +150,16 @@ contract SetupPhase6 is Script, HankoEnv {
             IUserRegistry(swapRegistry).setSubregistry(tokenId, aliceRegistry);
             vm.stopBroadcast();
 
-            // The back-link is what lets the checker tell whose registry it is looking at.
-            vm.startBroadcast(aliceKey);
-            IUserRegistry(aliceRegistry).setParent(swapRegistry, aliceLabel);
-            vm.stopBroadcast();
-            console.log("Alice's registry    ", aliceRegistry);
+            if (!reuse) {
+                // The back-link is what lets the checker tell whose registry it is looking at.
+                vm.startBroadcast(aliceKey);
+                IUserRegistry(aliceRegistry).setParent(swapRegistry, aliceLabel);
+                vm.stopBroadcast();
+                vm.writeJson(vm.toString(aliceRegistry), deploymentsPath(), ".hanko.AliceRegistry");
+                console.log("Alice's registry    ", aliceRegistry);
+            } else {
+                console.log("re-attached Alice's registry", aliceRegistry);
+            }
         }
 
         // The venue records the pointer; the investor makes the grant. Neither can do the other's
