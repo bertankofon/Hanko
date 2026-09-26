@@ -72,6 +72,43 @@ export const checkerAbi = [
   {type: 'function', name: 'owner', inputs: [], outputs: [{type: 'address'}], stateMutability: 'view'},
 ] as const;
 
+export const stateViewAbi = [
+  {
+    type: 'function',
+    name: 'getSlot0',
+    inputs: [{name: 'poolId', type: 'bytes32'}],
+    outputs: [
+      {name: 'sqrtPriceX96', type: 'uint160'},
+      {name: 'tick', type: 'int24'},
+      {name: 'protocolFee', type: 'uint24'},
+      {name: 'lpFee', type: 'uint24'},
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'getLiquidity',
+    inputs: [{name: 'poolId', type: 'bytes32'}],
+    outputs: [{type: 'uint128'}],
+    stateMutability: 'view',
+  },
+] as const;
+
+export const adapterAbi = [
+  {type: 'function', name: 'swappingEnabled', inputs: [], outputs: [{type: 'bool'}], stateMutability: 'view'},
+  {
+    type: 'function',
+    name: 'allowListChecker',
+    inputs: [],
+    outputs: [{type: 'address'}],
+    stateMutability: 'view',
+  },
+  {type: 'function', name: 'totalSupply', inputs: [], outputs: [{type: 'uint256'}], stateMutability: 'view'},
+] as const;
+
+/** v4 StateView on Sepolia, from Uniswap/contracts deployments. */
+export const STATE_VIEW = '0xE1Dd9c3fA50EDB962E442f60DfBc432e24537E4C' as const;
+
 /** Server-side client. The RPC URL stays on the server. */
 export function getClient(): PublicClient | null {
   const rpcUrl = process.env.SEPOLIA_RPC_URL ?? process.env.ANVIL_RPC_URL;
@@ -101,6 +138,26 @@ export function formatAmount(value: bigint, decimals: number, places = 2): strin
   const whole = value / base;
   const frac = ((value % base) * 10n ** BigInt(places)) / base;
   return `${whole.toLocaleString('en-US')}.${frac.toString().padStart(places, '0')}`;
+}
+
+/**
+ * Whole USDC per whole tNVDA from a Q64.96 sqrt price.
+ *
+ * The inversion below is where a permissioned pool most easily goes wrong: which side tNVDA sits
+ * on depends on the adapter's address, and getting it backwards yields a price off by 1e12 that
+ * still looks like a working pool.
+ */
+export function usdcPerTnvda(sqrtPriceX96: bigint, tnvdaIsCurrency0: boolean): number {
+  const q192 = 1n << 192n;
+  const priceX192 = sqrtPriceX96 * sqrtPriceX96;
+  const SCALE = 1_000_000n; // keep six decimals of precision through the integer maths
+
+  if (tnvdaIsCurrency0) {
+    // price = raw USDC per raw tNVDA
+    return Number((priceX192 * 10n ** 18n * SCALE) / q192 / 10n ** 6n) / Number(SCALE);
+  }
+  // price = raw tNVDA per raw USDC; invert
+  return Number((q192 * 10n ** 12n * SCALE) / priceX192) / Number(SCALE);
 }
 
 export function explorer(address: string): string {

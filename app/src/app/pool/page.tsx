@@ -1,15 +1,22 @@
+import {encodeAbiParameters, keccak256, parseAbiParameters} from 'viem';
 import {RefreshButton} from '@/components/RefreshButton';
+import {SwapPanel} from '@/components/SwapPanel';
 import {TransferProbe} from '@/components/TransferProbe';
 import {getActors} from '@/lib/actors';
 import {
+  adapterAbi,
   checkerAbi,
   decodeFlags,
   explorer,
   formatAmount,
   getClient,
   hankoAddress,
+  STATE_VIEW,
+  stateViewAbi,
   tokenAbi,
+  usdcPerTnvda,
 } from '@/lib/hanko';
+import {getPoolKey} from '@/lib/swap';
 
 export const dynamic = 'force-dynamic';
 
@@ -76,8 +83,39 @@ export default async function PoolPage() {
     }),
   );
 
-  // The token must defer to the same checker the pool will, or the restriction is decorative.
+  // The token must defer to the same checker the pool does, or the restriction is decorative.
   const checkersAgree = activeChecker.toLowerCase() === checker.toLowerCase();
+
+  const poolKey = getPoolKey();
+  const adapter = hankoAddress('PermissionsAdapter');
+  const pool = poolKey && adapter ? await readPool(poolKey, adapter) : null;
+
+  async function readPool(key: NonNullable<ReturnType<typeof getPoolKey>>, adapterAddress: string) {
+    // PoolId is the hash of the key's ABI encoding — v4-core PoolIdLibrary.
+    const poolId = keccak256(
+      encodeAbiParameters(
+        parseAbiParameters('address, address, uint24, int24, address'),
+        [key.currency0, key.currency1, key.fee, key.tickSpacing, key.hooks],
+      ),
+    );
+
+    const [slot0, liquidity, swappingEnabled, wrapped] = await Promise.all([
+      client!.readContract({address: STATE_VIEW, abi: stateViewAbi, functionName: 'getSlot0', args: [poolId]}),
+      client!.readContract({address: STATE_VIEW, abi: stateViewAbi, functionName: 'getLiquidity', args: [poolId]}),
+      client!.readContract({address: adapterAddress as `0x${string}`, abi: adapterAbi, functionName: 'swappingEnabled'}),
+      client!.readContract({address: adapterAddress as `0x${string}`, abi: adapterAbi, functionName: 'totalSupply'}),
+    ]);
+
+    const tnvdaIsCurrency0 = key.currency0.toLowerCase() === adapterAddress.toLowerCase();
+    return {
+      poolId,
+      price: usdcPerTnvda(slot0[0], tnvdaIsCurrency0),
+      tick: slot0[1],
+      liquidity,
+      swappingEnabled,
+      wrapped,
+    };
+  }
 
   const calls = [
     `symbol() / decimals() / totalSupply() / owner() / checker() @ ${token}`,
@@ -165,6 +203,33 @@ export default async function PoolPage() {
           </table>
         </div>
       </section>
+
+      {pool && (
+        <section className="flex flex-wrap items-center gap-x-5 gap-y-1 rounded-xl border border-line bg-panel px-4 py-3 text-xs">
+          <span className="flex items-center gap-1.5">
+            <span className={`size-2 rounded-full ${pool.swappingEnabled ? 'bg-pass' : 'bg-fail'}`} />
+            {pool.swappingEnabled ? 'Trading open' : 'Trading halted'}
+          </span>
+          <span className="text-muted">
+            price{' '}
+            <span className="font-mono text-ink">
+              {pool.price.toLocaleString('en-US', {maximumFractionDigits: 2})} USDC
+            </span>{' '}
+            / tNVDA <span className="text-pending">(demo price)</span>
+          </span>
+          <span className="text-muted">
+            tick <span className="font-mono text-ink">{pool.tick}</span>
+          </span>
+          <span className="text-muted">
+            liquidity <span className="font-mono text-ink">{pool.liquidity.toString()}</span>
+          </span>
+          <span className="text-muted">
+            wrapped in pool <span className="font-mono text-ink">{formatAmount(pool.wrapped, 18)}</span> tNVDA
+          </span>
+        </section>
+      )}
+
+      {pool && <SwapPanel actors={actors.map((a) => ({name: a.name}))} />}
 
       <TransferProbe actors={actors.map((a) => ({name: a.name}))} symbol={symbol} />
 
