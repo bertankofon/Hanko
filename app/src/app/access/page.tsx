@@ -80,7 +80,7 @@ export default async function AccessPage() {
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_20rem]">
-      <div className="space-y-8">
+      <div className="min-w-0 space-y-8">
         <header>
           <h1 className="text-section">Who may trade here</h1>
           <p className="mt-3 text-body text-muted">

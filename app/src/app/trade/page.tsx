@@ -75,7 +75,9 @@ export default async function TradePage({
         </header>
 
         <div className="overflow-hidden rounded-2xl border border-line bg-panel">
-          <div className="grid grid-cols-[1fr_7rem_6rem_7rem] gap-3 border-b border-line px-5 py-3 text-xs uppercase tracking-[0.14em] text-muted">
+          {/* The header only earns its space once the columns exist; below sm the row carries
+              its own labels instead. */}
+          <div className="hidden grid-cols-[1fr_7rem_6rem_7rem] gap-3 border-b border-line px-5 py-3 text-xs uppercase tracking-[0.14em] text-muted sm:grid">
             <span>Symbol</span>
             <span className="text-right">Price</span>
             <span className="text-right">Status</span>
@@ -90,24 +92,39 @@ export default async function TradePage({
                 href={`/trade?symbol=${market.stock.symbol}`}
                 scroll={false}
                 className={[
-                  'grid grid-cols-[1fr_7rem_6rem_7rem] items-center gap-3 border-b border-line px-5 py-4 transition-colors last:border-b-0',
+                  'flex items-center gap-3 border-b border-line px-4 py-4 transition-colors last:border-b-0 sm:px-5',
+                  'sm:grid sm:grid-cols-[1fr_7rem_6rem_7rem]',
                   active ? 'bg-panel-2' : 'hover:bg-panel-2/60',
                 ].join(' ')}
               >
-                <span className="flex items-center gap-3">
+                <span className="flex min-w-0 flex-1 items-center gap-3">
                   <StockLogo underlying={market.stock.underlying} />
-                  <span>
-                    <span className="block text-base font-medium">{market.stock.name}</span>
-                    <span className="block text-sm text-muted">
-                      {market.stock.symbol} · tracks {market.stock.underlying}
+                  <span className="min-w-0">
+                    <span className="block truncate text-base font-medium">{market.stock.name}</span>
+                    <span className="flex items-center gap-2 text-sm text-muted">
+                      <span className="truncate">
+                        {market.stock.symbol} · tracks {market.stock.underlying}
+                      </span>
+                      {/* The pill has no column of its own on a phone, so it rides here. */}
+                      <span className="sm:hidden">
+                        <StatusPill market={market} />
+                      </span>
                     </span>
                   </span>
                 </span>
-                <span className="text-right text-base tabular-nums">{money(market.price)}</span>
-                <span className="text-right">
+
+                {/* Below sm, price and status stack in one right-hand block and the holding
+                    moves under the price, so nothing has to scroll sideways. */}
+                <span className="shrink-0 text-right text-base tabular-nums">
+                  {money(market.price)}
+                  <span className="block text-sm text-muted sm:hidden">
+                    {formatAmount(market.balance, 18, 2)} held
+                  </span>
+                </span>
+                <span className="hidden shrink-0 text-right sm:block">
                   <StatusPill market={market} />
                 </span>
-                <span className="text-right text-base tabular-nums text-muted">
+                <span className="hidden text-right text-base tabular-nums text-muted sm:block">
                   {formatAmount(market.balance, 18, 2)}
                 </span>
               </Link>

@@ -191,8 +191,17 @@ export interface SwapRequest {
   side: 'buy' | 'sell';
   amount: string;
   /** Overrides the viewer — the walkthrough drives specific actors by name. */
-  asActor?: string;
+  asActor?: (typeof TRADEABLE_ACTORS)[number];
 }
+
+/**
+ * Whose key this action will sign with, at most.
+ *
+ * A server action takes whatever the caller sends, so the override is a closed list rather than a
+ * free string. The venue operator is deliberately absent: it holds the ENS roles and the token
+ * ownership, and nothing on this screen should ever be able to spend from it.
+ */
+const TRADEABLE_ACTORS = ['Alice', 'Bot', 'Stranger'] as const;
 
 /** Signs and sends a swap as whoever the visitor is currently acting as. */
 export async function swap(request: SwapRequest): Promise<SwapResult> {
@@ -204,7 +213,11 @@ export async function swap(request: SwapRequest): Promise<SwapResult> {
     return {status: 'error', headline: 'Not configured', detail: 'That symbol is not listed.'};
   }
 
-  const actorName = request.asActor ?? actorForRole((await getViewer()).id);
+  const override = request.asActor;
+  const actorName =
+    override && (TRADEABLE_ACTORS as readonly string[]).includes(override)
+      ? override
+      : actorForRole((await getViewer()).id);
   const actor = getActors().find((a) => a.name === actorName);
   const wallet = getActorWallet(actorName);
   if (!actor || !wallet) {
