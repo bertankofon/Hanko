@@ -63,7 +63,13 @@ export default function OverviewPage() {
       {/* The order, first, because it is the reason any of this exists. */}
       <header className="py-10 sm:py-16">
         <Reveal>
-          <p className={eyebrow}>17 September 2026 · the reason for this project</p>
+          <div className="mb-6 flex items-center gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element -- fixed-size brand asset */}
+            <img src="/brand/hanko-mark-trimmed.webp" alt="" className="h-8 w-auto" />
+            <p className="text-sm font-medium uppercase tracking-[0.2em] text-seal">
+              17 September 2026 · the reason for this project
+            </p>
+          </div>
         </Reveal>
 
         <Reveal delay={100}>
@@ -307,6 +313,9 @@ export default function OverviewPage() {
 
       <footer className="border-t border-line py-20">
         <Reveal>
+          {/* The lockup, large — at this size its own red carries against the background. */}
+          {/* eslint-disable-next-line @next/next/no-img-element -- fixed-size brand asset */}
+          <img src="/brand/hanko-lockup-trimmed.webp" alt="Hanko" className="mb-10 h-14 w-auto sm:h-16" />
           <p className="text-section text-balance">Everything else on this site is read from Sepolia.</p>
           <div className="mt-9 flex flex-wrap gap-3">
             <Link href="/pool" className={primaryButton}>

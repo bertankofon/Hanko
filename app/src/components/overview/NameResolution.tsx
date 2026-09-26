@@ -88,8 +88,10 @@ export function NameResolution() {
         {/* eslint-disable-next-line @next/next/no-img-element -- fixed-size brand SVG */}
         <img src="/brand/uniswap-logo-white.svg" alt="Uniswap" className="h-6 w-auto" />
         <span className="text-muted">asks</span>
-        <span className="rounded-lg border border-seal bg-seal/10 px-4 py-2 text-body font-semibold text-seal">
-          判 Hanko
+        <span className="flex items-center gap-2 rounded-lg border border-seal bg-seal/10 px-4 py-2">
+          {/* eslint-disable-next-line @next/next/no-img-element -- fixed-size brand asset */}
+          <img src="/brand/hanko-mark-trimmed.webp" alt="" className="h-6 w-auto" />
+          <span className="text-body font-semibold text-seal">Hanko</span>
         </span>
         <span className="text-muted">which reads</span>
         {/* eslint-disable-next-line @next/next/no-img-element -- fixed-size brand SVG */}

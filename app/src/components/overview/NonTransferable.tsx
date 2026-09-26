@@ -31,18 +31,15 @@ export function NonTransferable() {
         {/* the seal, trying to travel */}
         <div className="relative h-16 sm:w-40">
           <div
-            className="absolute top-1/2 flex size-12 -translate-y-1/2 items-center justify-center rounded-full border-2 text-lg font-bold transition-all duration-700"
+            className="absolute top-1/2 size-12 -translate-y-1/2 transition-all duration-700"
             style={{
               left: moving ? 'calc(100% - 3rem)' : '0',
-              borderColor: rejected ? 'var(--fail)' : 'var(--seal)',
-              color: rejected ? 'var(--fail)' : 'var(--seal)',
-              background: rejected
-                ? 'color-mix(in oklab, var(--fail) 12%, transparent)'
-                : 'color-mix(in oklab, var(--seal) 12%, transparent)',
-              transform: `translateY(-50%) ${step === 1 ? 'scale(1.12)' : 'scale(1)'} ${rejected ? 'rotate(-12deg)' : ''}`,
+              transform: `translateY(-50%) ${step === 1 ? 'scale(1.12)' : 'scale(1)'} ${rejected ? 'rotate(-14deg)' : ''}`,
+              filter: rejected ? 'grayscale(0.55) brightness(0.8)' : 'none',
             }}
           >
-            判
+            {/* eslint-disable-next-line @next/next/no-img-element -- fixed-size brand asset */}
+            <img src="/brand/hanko-mark-trimmed.webp" alt="the seal" className="size-full object-contain" />
           </div>
         </div>
 
