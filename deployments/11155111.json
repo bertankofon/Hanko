@@ -54,13 +54,13 @@
     "UniversalResolverProxy": "0xeEeEEEeE14D718C2B47D9923Deab1335E144EeEe"
   },
   "hanko": {
-    "MockStockToken": null,
-    "SimpleAllowlistChecker": null,
+    "MockStockToken": "0x301b61f063fc6232D21cdFa5D97042910ee3994F",
+    "SimpleAllowlistChecker": "0xc229c68F0C22301d3b332e0EAEfB3a93ebbe683D",
     "EnsAllowlistChecker": null,
     "HumanRegistrar": null,
     "PermissionsAdapter": null,
     "SwapRegistry": null,
     "LpRegistry": null,
-    "deployBlock": null
+    "deployBlock": 11785312
   }
 }
