@@ -61,6 +61,16 @@
     "PermissionsAdapter": null,
     "SwapRegistry": null,
     "LpRegistry": null,
-    "deployBlock": 11785312
+    "deployBlock": 11785312,
+    "MockUSDC": null
+  },
+  "pool": {
+    "currency0": null,
+    "currency1": null,
+    "fee": null,
+    "tickSpacing": null,
+    "hooks": null,
+    "initialSqrtPriceX96": null,
+    "positionTokenId": null
   }
 }
