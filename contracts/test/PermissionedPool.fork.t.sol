@@ -100,7 +100,7 @@ contract PermissionedPoolForkTest is Test, EnsFixture {
 
         vm.startPrank(issuer);
         checker = new SimpleAllowlistChecker(issuer);
-        token = new MockStockToken(issuer, checker);
+        token = new MockStockToken(issuer, checker, "Tokenized NVIDIA", "tNVDA");
         usdc = new MockUSDC();
 
         checker.setFlags(issuer, PermissionFlags.ALL_ALLOWED);

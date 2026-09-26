@@ -24,7 +24,7 @@ contract MockStockTokenTest is Test {
 
     function setUp() public {
         checker = new SimpleAllowlistChecker(issuer);
-        token = new MockStockToken(issuer, checker);
+        token = new MockStockToken(issuer, checker, "Tokenized NVIDIA", "tNVDA");
 
         vm.startPrank(issuer);
         checker.setFlags(alice, PermissionFlags.SWAP_ALLOWED | PermissionFlags.LIQUIDITY_ALLOWED);

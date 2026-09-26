@@ -65,7 +65,8 @@
     "MockUSDC": "0xB30c9206F2747f122A3AB2924a537193eCB623fa",
     "TnvdaRegistry": "0x2462d01326F42ccfDbcC6358e2c8B4fd157Ea7fC",
     "AgentIndex": "0x385C90b1613D30706828380133bfdC3D61A49107",
-    "AliceRegistry": "0xBA8daFac04175cbc3cD25d596046F9B71cFf169b"
+    "AliceRegistry": "0xBA8daFac04175cbc3cD25d596046F9B71cFf169b",
+    "VenueRegistry": "0xD7b4e2653fCEC23f7e8A2A5FFc7CD8f31aa69707"
   },
   "pool": {
     "currency0": "0x7060947614ECED6CA376A318C81dF6C088f00718",
@@ -75,5 +76,43 @@
     "hooks": "0x51247E2291d290d17C08813A175AC86465EdE8c0",
     "initialSqrtPriceX96": 1120455419495722798374638,
     "positionTokenId": 1
+  },
+  "stocks": {
+    "tNVDA": {
+      "name": "Tokenized NVIDIA",
+      "underlying": "NVDA",
+      "token": "0x504A42D07c7cB0A9b2404115aAF1589cCb703ED3",
+      "adapter": "0x331a5383Ca4A95802FD6b49593Bcc44906404475",
+      "usdcPerUnit": 225000000,
+      "currency0": "0x331a5383Ca4A95802FD6b49593Bcc44906404475",
+      "currency1": "0xB30c9206F2747f122A3AB2924a537193eCB623fa",
+      "fee": 3000,
+      "tickSpacing": 60,
+      "positionTokenId": 2
+    },
+    "tAAPL": {
+      "name": "Tokenized Apple",
+      "underlying": "AAPL",
+      "token": "0xBbB490fd551765BF2b2aC67c68ebb004013C7186",
+      "adapter": "0xeb33CBF1BF0a5e524B003E8e658d8FeDbbAd1f25",
+      "usdcPerUnit": 340000000,
+      "currency0": "0xB30c9206F2747f122A3AB2924a537193eCB623fa",
+      "currency1": "0xeb33CBF1BF0a5e524B003E8e658d8FeDbbAd1f25",
+      "fee": 3000,
+      "tickSpacing": 60,
+      "positionTokenId": 3
+    },
+    "tMSFT": {
+      "name": "Tokenized Microsoft",
+      "underlying": "MSFT",
+      "token": "0xf4db10BC5f11C6474E5d3284CFd42f7F11c0A05F",
+      "adapter": "0x317d6FD1ADdB880c5B2fDb9E4abEdf6db1e1B59C",
+      "usdcPerUnit": 519000000,
+      "currency0": "0x317d6FD1ADdB880c5B2fDb9E4abEdf6db1e1B59C",
+      "currency1": "0xB30c9206F2747f122A3AB2924a537193eCB623fa",
+      "fee": 3000,
+      "tickSpacing": 60,
+      "positionTokenId": 4
+    }
   }
 }

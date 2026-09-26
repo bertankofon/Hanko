@@ -33,7 +33,7 @@ contract DeployPhase1 is Script {
         vm.startBroadcast(deployerKey);
 
         SimpleAllowlistChecker checker = new SimpleAllowlistChecker(issuer);
-        MockStockToken token = new MockStockToken(issuer, checker);
+        MockStockToken token = new MockStockToken(issuer, checker, "Tokenized NVIDIA", "tNVDA");
 
         // Alice is the verified investor: she may swap and provide liquidity. Stranger and Bot
         // are deliberately left with nothing — Stranger stays that way, Bot gets a delegated swap

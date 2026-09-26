@@ -8,7 +8,7 @@ import {IAllowlistChecker} from
 import {PermissionFlag, PermissionFlags} from
     "@uniswap/v4-periphery/src/hooks/permissionedPools/libraries/PermissionFlags.sol";
 
-/// @title MockStockToken (tNVDA)
+/// @title MockStockToken
 /// @notice A stand-in for a tokenized NMS stock: transfer-restricted, issuer-minted.
 ///
 /// @dev The token asks the *same* allowlist checker the pool's permissions adapter asks. If the
@@ -40,8 +40,12 @@ contract MockStockToken is ERC20, Ownable {
     /// @param flags What the checker returned for them (`0x0000` means no permission at all)
     error RecipientNotAllowed(address to, PermissionFlag flags);
 
-    constructor(address initialOwner, IAllowlistChecker initialChecker)
-        ERC20("Tokenized NVIDIA", "tNVDA")
+    /// @param name_ Display name, e.g. "Tokenized NVIDIA".
+    /// @param symbol_ Ticker, e.g. "tNVDA".
+    /// @dev The venue lists several of these. They share one checker, because the order describes
+    ///      clearance as a property of the person, not of the symbol — see docs/refs.
+    constructor(address initialOwner, IAllowlistChecker initialChecker, string memory name_, string memory symbol_)
+        ERC20(name_, symbol_)
         Ownable(initialOwner)
     {
         checker = initialChecker;
