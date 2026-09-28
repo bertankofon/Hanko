@@ -1,5 +1,6 @@
 import type {Metadata} from 'next';
 import Link from 'next/link';
+import {MobileMenu} from '@/components/chrome/MobileMenu';
 import {RoleSwitcher} from '@/components/chrome/RoleSwitcher';
 import {TabNav, type Tab} from '@/components/TabNav';
 import {getActors} from '@/lib/actors';
@@ -50,14 +51,21 @@ export default async function RootLayout({children}: {children: React.ReactNode}
     <html lang="en">
       <body>
         <div className="mx-auto max-w-6xl px-4 py-6">
-          {/* Single-row header. Identity on the left, section tabs in the middle, viewer on the
-              right. The wordmark and the role switcher hold their natural width (`shrink-0`) and
-              never wrap; only the tabs (nav has `flex-1 min-w-0` inside `TabNav`) shrink, so if
-              they still don't fit — the operator has six of them — they wrap onto a second line
-              within their own column before pushing the switcher out of the top row. `items-
-              stretch` pulls each tab to the bar's full height, so the active-tab underline sits
-              on the header's own bottom border rather than under a second one. */}
-          <header className="flex items-stretch gap-x-4 border-b border-line">
+          {/* Single-row header on `md` and up. Identity on the left, section tabs in the middle,
+              viewer on the right. The wordmark and the role switcher hold their natural width
+              (`shrink-0`) and never wrap; only the tabs (nav has `flex-1 min-w-0` inside
+              `TabNav`) shrink, so if they still don't fit — the operator has six of them —
+              they wrap onto a second line within their own column before pushing the switcher
+              out of the top row. `items-stretch` pulls each tab to the bar's full height, so
+              the active-tab underline sits on the header's own bottom border rather than under
+              a second one.
+
+              Below `md`: only the wordmark and `MobileMenu` are visible. Tabs and the role
+              switcher move into a drawer that slides in from the right, because three flex
+              children fighting for a phone's width was making the header the worst-looking
+              part of the app. `justify-between` on the header keeps the wordmark left and
+              the hamburger right when the middle column is gone. */}
+          <header className="flex items-center justify-between gap-x-4 border-b border-line md:items-stretch md:justify-normal">
             <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 py-3">
               <Link href="/overview" className="flex items-center">
                 {/* The lockup carries the wordmark's own red, which reads on this background at
@@ -75,11 +83,15 @@ export default async function RootLayout({children}: {children: React.ReactNode}
               </span>
             </div>
 
-            <TabNav tabs={tabsFor(viewer.id)} />
+            <div className="hidden min-w-0 flex-1 md:flex">
+              <TabNav tabs={tabsFor(viewer.id)} />
+            </div>
 
-            <div className="flex shrink-0 items-center py-2">
+            <div className="hidden shrink-0 items-center py-2 md:flex">
               <RoleSwitcher options={options} current={viewer.id} />
             </div>
+
+            <MobileMenu tabs={tabsFor(viewer.id)} options={options} current={viewer.id} />
           </header>
 
           <main className="py-6">{children}</main>
